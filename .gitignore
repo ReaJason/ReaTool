@@ -1,0 +1,6 @@
+**.spec
+.idea/
+
+dist/
+build/
+pyside6/
