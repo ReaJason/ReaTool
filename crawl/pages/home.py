@@ -1,6 +1,4 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
-from crawl.setting_manager import settings_manager
-from crawl.core import get_qrcode
 
 
 class HomePage(QWidget):

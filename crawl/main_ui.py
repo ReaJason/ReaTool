@@ -4,8 +4,7 @@ from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QHBoxLayout, QVBo
 
 from .widget import SideBar, Header, Footer
 from .hitokoto_thread import HitokotoThread
-from .pages import HomePage, SettingPage, AboutPage, SpiderPage
-from .setting_manager import settings_manager
+from .pages import HomePage, SettingPage, AboutPage, XiaohongshuPage
 from .__version__ import __version__, __title__, __copyright__
 
 
@@ -18,22 +17,10 @@ class MainWidget(QWidget):
             "pageWidget": HomePage,
         },
         {
-            "label": "爬虫",
+            "label": "小红书爬虫",
             "lightIcon": "asserts/spider-light.png",
             "darkIcon": "asserts/spider-dark.png",
-            "pageWidget": SpiderPage,
-        },
-        {
-            "label": "关于",
-            "lightIcon": "asserts/flash-light.png",
-            "darkIcon": "asserts/flash-dark.png",
-            "pageWidget": AboutPage,
-        },
-        {
-            "label": "设置",
-            "lightIcon": "asserts/setting-light.png",
-            "darkIcon": "asserts/setting-dark.png",
-            "pageWidget": SettingPage,
+            "pageWidget": XiaohongshuPage,
         },
     ]
 
@@ -42,11 +29,14 @@ class MainWidget(QWidget):
         self.resize(1280, 720)
         self.setMinimumSize(940, 560)
         self.setWindowTitle(__title__)
-        self.setWindowIcon(QPixmap("asserts/spider-dark.png"))
+        self.setWindowIcon(QPixmap("asserts/logo.png"))
 
         menu_widget = SideBar(self.side_menu)
+
+        # 默认显示打开首页
         menu_widget.set_current_row(0)
-        menu_widget.setFixedWidth(200)
+
+        menu_widget.setFixedWidth(300)
         menu_widget.set_current_row_change(self.page_change)
 
         main_widget = QVBoxLayout()

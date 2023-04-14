@@ -1,6 +1,6 @@
 **.spec
 .idea/
-
+conf.ini
 dist/
 build/
 pyside6/

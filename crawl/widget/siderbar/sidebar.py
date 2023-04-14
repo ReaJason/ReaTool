@@ -12,10 +12,9 @@ class SideBar(QWidget):
 
         layout = QVBoxLayout()
         logo_widget = QLabel()
-        logo_widget.setText("crawl spider")
-        logo_widget.setStyleSheet("""font-weight: 700;""")
-
-        # layout.addWidget(logo_widget)
+        logo_widget.setText("ReaTool: a personal toolbox")
+        logo_widget.setStyleSheet("""font-weight: bold""")
+        layout.addWidget(logo_widget)
         layout.addWidget(self.side_menu_widget)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
