@@ -20,7 +20,6 @@ class SideBar(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.setStyleSheet("""
-        background-color: rgb(249,250,251);
         padding: 8px;
         border-right: 1px solid rgb(229, 231, 235)
         """)
