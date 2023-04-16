@@ -4,7 +4,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QFrame, QLabel, QHBoxLayout, QVBoxLayout, QWidget
 
 from crawl.core import GetSelfUserThread
-from crawl.help import get_avatar
+from crawl.help import get_circle_image_from_url
 from crawl.widget import Button
 
 
@@ -118,7 +118,7 @@ class WelComeCard(QFrame):
     def refresh(self, user):
         basic_info = user["basic_info"]
         interactions = {interaction["type"]: interaction["count"] for interaction in user["interactions"]}
-        self.welcome_label.setText(f"WelCome {basic_info['nickname']}！👋")
+        self.welcome_label.setText(f"Welcome {basic_info['nickname']}！👋")
         self.user_info_label.setText(
             f"小红书号：{basic_info['red_id']}，"
             f"IP属地：{basic_info['ip_location']}，"
@@ -126,10 +126,8 @@ class WelComeCard(QFrame):
             f"粉丝：{interactions['fans']}，"
             f"获赞与收藏：{interactions['interaction']}")
         self.user_desc_label.setText("简介：" + basic_info["desc"])
-        avatar = QPixmap()
-        avatar.loadFromData(QByteArray(requests.get(basic_info["imageb"]).content))
-        self.avatar.setPixmap(get_avatar(avatar.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio,
-                                                       Qt.SmoothTransformation)))
+
+        self.avatar.setPixmap(get_circle_image_from_url(basic_info["imageb"]))
 
     def logout_clicked(self):
         self.logout.emit(True)

@@ -27,7 +27,7 @@ class MainWidget(QWidget):
     def __init__(self, parent=None):
         super(MainWidget, self).__init__(parent)
         self.resize(1280, 720)
-        self.setMinimumSize(940, 560)
+        self.setMinimumSize(1280, 720)
         self.setWindowTitle(__title__)
         self.setWindowIcon(QPixmap("asserts/logo.png"))
 
