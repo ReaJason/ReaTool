@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt, Slot, QByteArray, Signal
-from PySide6.QtGui import QPixmap, QImage, QShowEvent
+from PySide6.QtGui import QPixmap, QShowEvent
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout
 from crawl.core import GenerateQrcodeThread, CheckQrcodeThread
 
@@ -48,7 +48,7 @@ class LoginPage(QWidget):
 
     @Slot(dict)
     def check_qrcode(self, check_status: dict):
-        code_status = check_status["code_status"]
+        code_status = check_status.get("code_status")
         self.qrcode_status.setText(check_status["msg"])
         if code_status == 2:
             self.login_success.emit(True)

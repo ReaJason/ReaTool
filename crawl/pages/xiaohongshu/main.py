@@ -1,8 +1,7 @@
-from PySide6.QtCore import Qt, Slot, Signal
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QStackedLayout
+from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QWidget, QStackedLayout
 from .login_page import LoginPage
-from crawl.core import GetSelfUserThread
+from .user_page import UserPage
 from crawl.setting_manager import xiaohongshu_set_cookie
 
 
@@ -17,6 +16,7 @@ class XiaohongshuPage(QWidget):
         self.login_page.login_success.connect(self.login_success)
         self.user_page = UserPage()
         self.user_page.fetch_success.connect(self.get_user_success)
+        self.user_page.logout.connect(self.logout)
         self.layout.addWidget(self.user_page)
         self.layout.addWidget(self.login_page)
         self.setLayout(self.layout)
@@ -25,28 +25,15 @@ class XiaohongshuPage(QWidget):
     def login_success(self, success: bool):
         if success:
             self.layout.setCurrentWidget(self.user_page)
+            self.user_page.get_self_info_thread.start()
 
     @Slot(bool)
     def get_user_success(self, success: bool):
         if not success:
             self.layout.setCurrentWidget(self.login_page)
 
-
-class UserPage(QWidget):
-    fetch_success = Signal(bool)
-
-    def __init__(self):
-        super().__init__()
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(QLabel("主页"))
-        self.get_self_info_thread = GetSelfUserThread()
-        self.get_self_info_thread.start()
-        self.get_self_info_thread.user.connect(self.get_self_info)
-        self.setLayout(self.layout)
-
-    @Slot(dict)
-    def get_self_info(self, user):
-        if not user:
-            self.fetch_success.emit(False)
-            return
-        print(user)
+    @Slot(bool)
+    def logout(self, success: bool):
+        if success:
+            xiaohongshu_set_cookie("")
+            self.layout.setCurrentWidget(self.login_page)

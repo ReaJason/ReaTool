@@ -40,29 +40,25 @@ class CheckQrcodeThread(QThread):
 
     def run(self) -> None:
         while True:
-            res = xhs_client.check_qrcode(qr_id=self.qr_id, code=self.qr_code)
-            code_status = res["code_status"]
-            print(res)
-            if code_status == 0:
-                res["msg"] = "请扫码..."
-            elif code_status == 1:
-                res["msg"] = "扫码成功!"
-            elif code_status == 2:
-                res["msg"] = "登录成功!"
+            try:
+                res = xhs_client.check_qrcode(qr_id=self.qr_id, code=self.qr_code)
+                code_status = res["code_status"]
+                print(res)
+                if code_status == 0:
+                    res["msg"] = "请扫码..."
+                elif code_status == 1:
+                    res["msg"] = "扫码成功!"
+                elif code_status == 2:
+                    res["msg"] = "登录成功!"
+                    self.check_status.emit(res)
+                    print(xhs_client.cookie)
+                    xiaohongshu_set_cookie(xhs_client.cookie)
+                    break
                 self.check_status.emit(res)
-                print(xhs_client.cookie)
-                xiaohongshu_set_cookie(xhs_client.cookie)
+                time.sleep(1)
+            except:
+                self.check_status.emit({"msg": "二维码过期，请刷新"})
                 break
-            elif code_status == 3:
-                res["msg"] = "二维码过期，请刷新"
-                self.check_status.emit(res)
-                break
-            else:
-                res["msg"] = f"出状况了！{res}"
-                self.check_status.emit(res)
-                break
-            self.check_status.emit(res)
-            time.sleep(0.5)
 
 
 class GetSelfUserThread(QThread):

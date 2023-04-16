@@ -1,7 +1,6 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from .side_menu import SideMenuWidget
+from crawl.__version__ import __title__
 
 
 class SideBar(QWidget):
@@ -12,7 +11,7 @@ class SideBar(QWidget):
 
         layout = QVBoxLayout()
         logo_widget = QLabel()
-        logo_widget.setText("ReaTool: a personal toolbox")
+        logo_widget.setText(__title__)
         logo_widget.setStyleSheet("""font-weight: bold""")
         layout.addWidget(logo_widget)
         layout.addWidget(self.side_menu_widget)
