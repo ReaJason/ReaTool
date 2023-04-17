@@ -2,9 +2,11 @@ from PySide6.QtWidgets import QPushButton
 
 
 class Button(QPushButton):
-    def __init__(self, style="default", *args, **kwargs):
+    def __init__(self, *args, style="default", **kwargs):
         super().__init__(*args, **kwargs)
         default = style == "default"
+        self.setMaximumWidth(100)
+        self.setMinimumWidth(100)
         style_sheet = """
  QPushButton {
     border-radius: 6px;

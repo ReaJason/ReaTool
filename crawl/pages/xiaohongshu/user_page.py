@@ -1,11 +1,14 @@
+import time
+
 import requests
-from PySide6.QtCore import QByteArray, Qt, Slot, Signal
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QFrame, QLabel, QHBoxLayout, QVBoxLayout, QWidget
+from PySide6.QtCore import QByteArray, Qt, Slot, Signal, QSize, QThread
+from PySide6.QtGui import QPixmap, QStandardItemModel, QStandardItem, QResizeEvent, QFont
+from PySide6.QtWidgets import QFrame, QLabel, QHBoxLayout, QVBoxLayout, QWidget, QFormLayout, QLineEdit, QTableWidget, \
+    QTableView, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from crawl.core import GetSelfUserThread
 from crawl.help import get_circle_image_from_url
-from crawl.widget import Button
+from crawl.widget import Button, LineEdit
 
 
 class UserPage(QWidget):
@@ -19,6 +22,7 @@ class UserPage(QWidget):
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.get_self_info_thread = GetSelfUserThread()
+        self.get_self_info_thread.user.connect(self.get_self_info)
 
         welcome_layout = QHBoxLayout()
         self.welcome_card = WelComeCard()
@@ -27,8 +31,12 @@ class UserPage(QWidget):
         welcome_layout.addWidget(self.welcome_card)
 
         self.layout.addLayout(welcome_layout)
+        self.layout.addSpacing(10)
+        crawl_comments_card = CrawlComments()
+
+        self.layout.addWidget(crawl_comments_card)
+
         self.get_self_info_thread.start()
-        self.get_self_info_thread.user.connect(self.get_self_info)
         self.setLayout(self.layout)
         self.setStyleSheet("""
 
@@ -50,6 +58,9 @@ class UserPage(QWidget):
         border: none;
         margin: 0;
         }
+        QHeaderView {
+            margin: 0
+        }
 
         """)
 
@@ -65,6 +76,9 @@ class UserPage(QWidget):
     def logout_success(self):
         print("退出登录")
         self.logout.emit(True)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        pass
 
 
 class WelComeCard(QFrame):
@@ -84,6 +98,7 @@ class WelComeCard(QFrame):
         detail_info_layout.setSpacing(0)
         detail_info_layout.setContentsMargins(0, 0, 0, 0)
         self.welcome_label = QLabel("Welcome!👋")
+        self.welcome_label.setStyleSheet("""font-size: 16px; font-weight: bold""")
         self.user_info_label = QLabel()
         self.user_info_label.setStyleSheet("""font-size: 12px; color: #333; opacity:0.6;""")
         self.user_desc_label = QLabel()
@@ -94,14 +109,10 @@ class WelComeCard(QFrame):
         detail_info_layout.addWidget(self.user_desc_label)
         layout.addLayout(detail_info_layout)
 
-        refresh_button = Button()
-        refresh_button.setMaximumWidth(100)
-        refresh_button.setText("刷新信息")
+        refresh_button = Button("刷新信息")
         refresh_button.clicked.connect(self.refresh_clicked)
 
-        logout_button = Button()
-        logout_button.setMaximumWidth(100)
-        logout_button.setText("登出")
+        logout_button = Button("登出")
         logout_button.clicked.connect(self.logout_clicked)
 
         button_layout = QVBoxLayout()
@@ -134,3 +145,96 @@ class WelComeCard(QFrame):
 
     def refresh_clicked(self):
         self.refresh_user_info.emit(True)
+
+
+class CrawlComments(QFrame):
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout()
+        title_label = QLabel("指定笔记评论采集：")
+        title_label.setStyleSheet("""font-size: 16px; font-weight: bold""")
+        layout.addWidget(title_label)
+        crawl_config_layout = QHBoxLayout()
+        note_edit_widget = LineEdit()
+        note_edit_widget.setPlaceholderText("请输入笔记ID")
+        crawl_button = Button("开始采集")
+        crawl_config_layout.addWidget(note_edit_widget)
+        crawl_config_layout.addWidget(crawl_button)
+        layout.addLayout(crawl_config_layout)
+
+        self.crawl_display_table = QTableView()
+        self.crawl_display_table.verticalHeader().hide()
+        self.crawl_display_table.setShowGrid(False)
+        self.crawl_display_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.crawl_display_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.crawl_display_table.setAlternatingRowColors(True)
+        header = self.crawl_display_table.horizontalHeader()
+        header.setHighlightSections(False)
+        header.setSectionsClickable(False)
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        header.setFixedHeight(35)
+        header_font = QFont()
+        header_font.setPixelSize(14)
+        header.setFont(header_font)
+
+        self.model = QStandardItemModel()
+        self.model.setHorizontalHeaderLabels(["评论用户昵称", "评论用户小红书 ID", "评论内容", "评论时间"])
+        self.threads = MonitorThread()
+        self.threads.row.connect(self.add_row_to_table)
+        self.threads.start()
+
+        self.crawl_display_table.setModel(self.model)
+        self.crawl_display_table.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
+        self.crawl_display_table.resizeRowsToContents()
+        self.crawl_display_table.setStyleSheet("""
+        QTableView {
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            margin: 0
+        }
+
+        QHeaderView::section{
+            background-color: #f6f8fa;
+            font-weight: bold;
+            border: none
+        }
+        QHeaderView::section:first {
+            border-top-left-radius: 6px;
+        }
+        QHeaderView::section:last {
+            border-top-right-radius: 6px;
+        }
+        QTableView::item {
+            border-bottom: 1px solid hsla(210,18%,87%,1);
+        }
+""")
+
+        layout.addWidget(self.crawl_display_table)
+        self.setLayout(layout)
+        self.setStyleSheet("""border: none;""")
+
+    @Slot(dict)
+    def add_row_to_table(self, row):
+        items = []
+        for j, (key, value) in enumerate(row.items()):
+            item = QStandardItem(str(value))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            item.setSizeHint(QSize(0, 35))
+            font = QFont()
+            font.setPixelSize(12)
+            item.setFont(font)
+            items.append(item)
+        self.model.appendRow(items)
+        self.crawl_display_table.scrollToBottom()
+
+
+class MonitorThread(QThread):
+    row = Signal(dict)
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self) -> None:
+        while True:
+            time.sleep(1)
+            self.row.emit({"name": "John", "id": 123456789, "content": "12312111231231", "date": "2023-04-13", })
