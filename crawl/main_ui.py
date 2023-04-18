@@ -1,11 +1,12 @@
-from PySide6.QtCore import Slot, QSettings
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QHBoxLayout, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QStackedLayout, QHBoxLayout, QVBoxLayout
 
-from .widget import SideBar, Header, Footer
-from .hitokoto_thread import HitokotoThread
-from .pages import HomePage, SettingPage, AboutPage, XiaohongshuPage
 from .__version__ import __version__, __title__, __copyright__
+from .hitokoto_thread import HitokotoThread
+from .pages import HomePage, XiaohongshuPage
+from .widget import SideBar, Footer
+from aria2.server import Aria2Server
 
 
 class MainWidget(QWidget):
@@ -36,7 +37,7 @@ class MainWidget(QWidget):
         # 默认显示打开首页
         menu_widget.set_current_row(0)
 
-        menu_widget.setFixedWidth(300)
+        menu_widget.setFixedWidth(200)
         menu_widget.set_current_row_change(self.page_change)
 
         main_widget = QVBoxLayout()
@@ -74,4 +75,4 @@ class MainWidget(QWidget):
         self.footer_widget.sentence_label.setText(sentence)
 
     def closeEvent(self, event) -> None:
-        pass
+        Aria2Server.end()
