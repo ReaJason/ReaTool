@@ -1,5 +1,8 @@
+import logging
 import os
 import subprocess
+import time
+
 from . import TOKEN, PORT
 from .client import Aria2Client
 
@@ -19,8 +22,14 @@ class Aria2Server:
             with open(log_path, "w"):
                 pass
 
+        # 日志文件大于 100M 则清空
+        log_size = os.stat(log_path).st_size
+        if log_size > 100 * 1048576:
+            with open(log_path, "w") as f:
+                f.write("")
+
         # 日志级别 debug, info, notice, warn or error. 默认: debug
-        log_level = "debug"
+        log_level = "info"
         # 最大同时下载数，默认为 5
         max_concurrent_downloads = "5"
         # 最大服务连接数，默认为 1
@@ -48,7 +57,14 @@ class Aria2Server:
             "-D"
         ]
         process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        time.sleep(1)
+        version = Aria2Client.get_version()
+        logging.info(f"aria2 {version['version']} 启动成功!")
 
     @staticmethod
     def end():
-        Aria2Client.shutdown()
+        res = Aria2Client.shutdown()
+        if res == "OK":
+            logging.info("aria2 退出成功!")
+        else:
+            logging.info(f"aria2 退出失败! {res}")

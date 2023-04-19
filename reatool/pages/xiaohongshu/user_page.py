@@ -4,10 +4,10 @@ from PySide6.QtCore import Qt, Slot, Signal, QSize, QThread
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QResizeEvent, QFont
 from PySide6.QtWidgets import QFrame, QLabel, QHBoxLayout, QVBoxLayout, QWidget, QTableView, QTabBar, QTabWidget
 
-from crawl.core import GetSelfUserThread
-from crawl.widget import Button, LineEdit, init_table
+from reatool.core import GetSelfUserThread
+from reatool.widget import Button, LineEdit, init_table
 from .welcome import WelComeCard
-from .crawl_notes import CrawlUserNotes
+from .crawl_notes import CrawlUserNotes, CrawlNote
 
 
 class UserPage(QWidget):
@@ -33,10 +33,10 @@ class UserPage(QWidget):
         self.layout.addSpacing(10)
 
         tab_bar = QTabWidget()
-        # tab_bar.addTab(CrawlUserNotes(), "笔记详情抓取")
-        tab_bar.addTab(CrawlUserNotes(), "用户笔记抓取")
-        tab_bar.addTab(CrawlComments(), "笔记评论抓取")
-        tab_bar.addTab(CrawlSetting(), "设置")
+        tab_bar.addTab(CrawlNote(), "笔记详情")
+        tab_bar.addTab(CrawlUserNotes(), "用户笔记")
+        # tab_bar.addTab(CrawlComments(), "笔记评论")
+        # tab_bar.addTab(CrawlSetting(), "设置")
         tab_bar.addTab(CrawlAbout(), "关于")
         tab_bar.setStyleSheet("""
         QTabWidget::pane {
@@ -131,9 +131,6 @@ class CrawlComments(QFrame):
         self.model = QStandardItemModel()
         self.model.setHorizontalHeaderLabels(["评论用户昵称", "评论用户小红书 ID", "评论内容", "评论时间"])
         self.crawl_display_table.setModel(self.model)
-        self.threads = MonitorThread()
-        self.threads.row.connect(self.add_row_to_table)
-        # self.threads.start()
 
         layout.addWidget(self.crawl_display_table)
         self.setLayout(layout)
@@ -166,41 +163,28 @@ class CrawlAbout(QFrame):
         super().__init__()
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        about_title = QLabel("关于")
-        about_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        about_title.setStyleSheet("""font-size: 16px; font-weight: bold;""")
-        layout.addWidget(about_title)
-        link = QLabel(
-            "当前爬虫使用的是封装的 Python 小工具 <a href='https://github.com/ReaJason/xhs'>xhs</a> 欢迎 star ✨")
-        link.setOpenExternalLinks(True)
-        link.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(link)
-
-        title = QLabel("免责声明")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("""font-size: 16px; font-weight: bold;""")
-        layout.addWidget(title)
-        list = QLabel("""
-                <ol>
-                  <li>本软件采集到的内容均可在网页上获取到，所有内容版权归原作者所有。</li>
-                  <li>本软件提供的所有资源，仅可用于学习交流使用，未经原作者授权，禁止用于其他用途。</li>
-                  <li>请在 24 小时内删除你所下载的资源，为尊重作者版权，请前往资源发布网站观看，支持原创</li>
-                  <li>任何涉及商业盈利目的均不得使用，否则一些后果由您承担</li>
-                  <li>因使用本软件产生的版权问题，软件作者概不负责</li>
-                </ol>
-                """)
-        layout.addWidget(list)
+        about_info = QLabel("""
+        <center>
+            <h3>关于</h3>
+            当前爬虫使用的是封装的 Python 小工具 <a href='https://github.com/ReaJason/xhs'>xhs</a> 欢迎 star ✨
+            <h3>联系我</h3>
+            <ul>
+                <li>博客✨：<a href='https://reajason.eu.org'>reajason.eu.org</a></li>
+                <li>邮箱📮：<a href='mailto:reajason1225@gmail.com'>reajason1225@gmail.com</a></li>
+                <li>GitHub🎉：<a href='https://github.com/ReaJason'>ReaJason</a></li>
+            </ul>
+            <h3>免责声明</h3>
+            <ol>
+              <li>本软件采集到的内容均可在网页上获取到，所有内容版权归原作者所有。</li>
+              <li>本软件提供的所有资源，仅可用于学习交流使用，未经原作者授权，禁止用于其他用途。</li>
+              <li>请在 24 小时内删除你所下载的资源，为尊重作者版权，请前往资源发布网站观看，支持原创</li>
+              <li>任何涉及商业盈利目的均不得使用，否则一些后果由您承担</li>
+              <li>因使用本软件产生的版权问题，软件作者概不负责</li>
+            </ol>
+        </center>
+        
+        """)
+        about_info.setOpenExternalLinks(True)
+        layout.addWidget(about_info)
         self.setLayout(layout)
         self.setStyleSheet("""border: none;margin:0;""")
-
-
-class MonitorThread(QThread):
-    row = Signal(dict)
-
-    def __init__(self):
-        super().__init__()
-
-    def run(self) -> None:
-        while True:
-            time.sleep(1)
-            self.row.emit({"name": "John", "id": 123456789, "content": "12312111231231", "date": "2023-04-13", })

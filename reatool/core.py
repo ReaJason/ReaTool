@@ -1,21 +1,25 @@
+import asyncio
 import base64
-import concurrent.futures
 import io
 import json
+import logging
 import os
 import re
 import time
 
-import asyncio
+import segno
 from PySide6.QtCore import QThread, Signal
 from xhs import XhsClient
-import segno
+
 from aria2.client import Aria2Client
+from .setting_manager import xhs_settings
 
-from .setting_manager import xiaohongshu_set_cookie, xiaohongshu_get_cookie
-
-cookie = xiaohongshu_get_cookie() or "webId=1"
+cookie = xhs_settings.cookie or "webId=1"
 xhs_client = XhsClient(cookie)
+root_path = os.path.abspath(".")
+download_path = os.path.join(root_path, "download")
+if not os.path.exists(download_path):
+    os.makedirs(download_path)
 
 
 def get_img_url_by_trace_id(trace_id: str):
@@ -67,7 +71,7 @@ class CheckQrcodeThread(QThread):
             try:
                 res = xhs_client.check_qrcode(qr_id=self.qr_id, code=self.qr_code)
                 code_status = res["code_status"]
-                print(res)
+                logging.debug(res)
                 if code_status == 0:
                     res["msg"] = "请扫码..."
                 elif code_status == 1:
@@ -75,8 +79,7 @@ class CheckQrcodeThread(QThread):
                 elif code_status == 2:
                     res["msg"] = "登录成功!"
                     self.check_status.emit(res)
-                    print(xhs_client.cookie)
-                    xiaohongshu_set_cookie(xhs_client.cookie)
+                    XhsSettings.cookie = xhs_client.cookie
                     break
                 self.check_status.emit(res)
                 time.sleep(1)
@@ -95,30 +98,66 @@ class GetSelfUserThread(QThread):
         try:
             self.user.emit(xhs_client.get_self_info())
         except Exception as e:
-            print(e)
+            logging.error(e)
             self.user.emit(None)
 
 
 class GetUserThread(QThread):
     user = Signal(dict)
+    error = Signal(str)
     user_id = ""
 
     def __init__(self):
         super().__init__()
 
     def run(self) -> None:
-        self.user.emit(xhs_client.get_user_info(self.user_id))
+        try:
+            self.user.emit(xhs_client.get_user_info(self.user_id))
+        except Exception as e:
+            logging.error(e)
+            self.error.emit(e)
+
+
+def get_note_by_id(note_id):
+    note = xhs_client.get_note_by_id(note_id)
+    logging.info(note)
+    interact_info = note["interact_info"]
+    result = {
+        "note_id": note["note_id"],
+        "title": note["title"],
+        "desc": note["desc"],
+        "type": note["type"],
+        "user": note["user"],
+        "user_id": note["user"]["user_id"],
+        "user_name": note["user"]["nickname"],
+        "img_urls": _get_img_urls_from_note(note),
+        "video_url": _get_video_url_from_note(note),
+        "tag_list": note["tag_list"],
+        "at_user_list": note["at_user_list"],
+        "collected_count": interact_info["collected_count"],
+        "comment_count": interact_info["comment_count"],
+        "liked_count": interact_info["liked_count"],
+        "share_count": interact_info["share_count"],
+    }
+    return result
 
 
 class GetNoteThread(QThread):
     note = Signal(dict)
+    note_id = ""
 
-    def __init__(self, note_id):
+    def __init__(self, queue):
         super().__init__()
-        self.note_id = note_id
+        self.queue = queue
 
     def run(self) -> None:
-        self.note.emit(xhs_client.get_note_by_id(self.note_id))
+        try:
+            note = get_note_by_id(self.note_id)
+            self.queue.put(note)
+            self.queue.put(None)
+            self.note.emit(note)
+        except Exception as e:
+            logging.error(e)
 
 
 class GetUserNoteThread(QThread):
@@ -128,69 +167,51 @@ class GetUserNoteThread(QThread):
     def __init__(self, queue):
         super().__init__()
         self.queue = queue
-        self.index = 0
 
     def run(self) -> None:
-        self.index = 0
         has_more = True
         cursor = ""
         while has_more:
             res = xhs_client.get_user_notes(self.user_id, cursor)
+            time.sleep(5)
             has_more = res["has_more"]
             cursor = res["cursor"]
             note_ids = map(lambda item: item["note_id"], res["notes"])
 
             for note_id in note_ids:
-                cur_note = xhs_client.get_note_by_id(note_id)
-                print(cur_note)
-                interact_info = cur_note["interact_info"]
-                result = {
-                    "note_id": cur_note["note_id"],
-                    "title": cur_note["title"],
-                    "desc": cur_note["desc"],
-                    "type": cur_note["type"],
-                    "user": cur_note["user"],
-                    "img_urls": _get_img_urls_from_note(cur_note),
-                    "video_url": _get_video_url_from_note(cur_note),
-                    "tag_list": cur_note["tag_list"],
-                    "at_user_list": cur_note["at_user_list"],
-                    "collected_count": interact_info["collected_count"],
-                    "comment_count": interact_info["comment_count"],
-                    "liked_count": interact_info["liked_count"],
-                    "share_count": interact_info["share_count"],
-                    "index": self.index
-                }
-                self.index += 1
+                result = get_note_by_id(note_id)
                 self.queue.put(result)
                 self.note.emit(result)
+                time.sleep(0.5)
         self.queue.put(None)
 
 
 class NoteDownloadThread(QThread):
-    info_index = Signal(dict)
     complete = Signal()
-    error_index = Signal(int)
 
-    def __init__(self, queue, base_path, max_workers):
+    def __init__(self, note_queue, download_queue):
         super().__init__()
-        self.note_queue = queue
-        self.base_path = base_path
-        self.max_workers = max_workers
+        self.note_queue = note_queue
+        self.download_queue = download_queue
+        self.index = 0
 
-    async def run_task(self):
-        running_tasks = []
+    def run(self) -> None:
+        self.index = 0
         while note := self.note_queue.get():
             title = note["title"]
             desc = note["desc"]
             note_id = note["note_id"]
-            model_index = note["index"]
+            model_index = self.index
+            self.index += 1
+            nickname = note["user"]["nickname"]
 
             invalid_chars = '<>:"/\\|?*'
             title = re.sub('[{}]'.format(re.escape(invalid_chars)), '_', title)
             if not title:
                 title = desc
 
-            new_dir_path = os.path.join(self.base_path, title + "_" + note_id)
+            user_save_path = os.path.join(download_path, nickname)
+            new_dir_path = os.path.join(user_save_path, title + "_" + note_id)
 
             if not os.path.exists(new_dir_path):
                 os.makedirs(new_dir_path)
@@ -206,49 +227,51 @@ class NoteDownloadThread(QThread):
                 gid = Aria2Client.add_url([video_url], f"{title}.mp4", new_dir_path)
                 gids.append(gid)
 
-            task = asyncio.create_task(self.check_status(model_index, gids))
-            running_tasks.append(task)
+            self.download_queue.put({
+                "index": model_index,
+                "gids": gids
+            })
 
             with open(os.path.join(new_dir_path, "data.json"), "w", encoding="utf-8") as f:
                 json.dump(note, f, ensure_ascii=False, indent=4)
-        await asyncio.gather(*running_tasks)
+        self.download_queue.put(None)
         self.complete.emit()
 
+
+class DownloadCheckThread(QThread):
+    info_index = Signal(dict)
+    complete = Signal()
+
+    def __init__(self, queue):
+        super().__init__()
+        self.queue = queue
+
     def run(self) -> None:
-        asyncio.set_event_loop(asyncio.new_event_loop())
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.run_task())
-        loop.close()
-
-    async def check_status(self, index, gids):
-        while True:
+        while download := self.queue.get():
+            index = download["index"]
+            gids = download["gids"]
             done = [0] * len(gids)
-            for i, gid in enumerate(gids):
-                await asyncio.sleep(1)
-                res = Aria2Client.check_status(gid)
-                print(res)
-                """
-                active for currently downloading/seeding downloads.
-                 waiting for downloads in the queue; download is not started.
-                  paused for paused downloads.
-                 error for downloads that were stopped because of error.
-                  complete for stopped and completed downloads.
-                   removed for the downloads removed by user.
-                """
-                status = res["status"]
-                if status == "complete":
-                    done[i] = 1
-                    done_info = ""
-                elif status == "active":
-                    done_info = f"下载中, {round(int(res['downloadSpeed']) / 1000000, 2)} M/s"
-                elif status == "error":
-                    done_info = "下载出错"
-                elif status == "waiting":
-                    done_info = "等待下载中"
-                else:
-                    done_info = "一定是发生什么事情了"
-                self.info_index.emit({"index": index, "info": done_info})
+            logging.info(f"正在检测第 {index} 个下载状态")
+            while True:
+                for i, gid in enumerate(gids):
+                    res = Aria2Client.check_status(gid)
+                    status = res["status"]
+                    logging.info(res)
+                    if status == "complete":
+                        done[i] = 1
+                        done_info = ""
+                    elif status == "active":
+                        done_info = f"下载中, {round(int(res['downloadSpeed']) / 1000000, 2)} M/s"
+                    elif status == "error":
+                        done_info = "下载出错"
+                    elif status == "waiting":
+                        done_info = ""
+                    else:
+                        done_info = "一定是发生什么事情了"
+                    self.info_index.emit({"index": index, "info": done_info})
 
-            if sum(done) == len(gids):
-                self.info_index.emit({"index": index, "info": "下载完成"})
-                break
+                if sum(done) == len(gids):
+                    self.info_index.emit({"index": index, "info": "下载完成"})
+                    break
+                time.sleep(0.5)
+        self.complete.emit()

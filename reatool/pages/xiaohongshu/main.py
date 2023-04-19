@@ -2,7 +2,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QWidget, QStackedLayout
 from .login_page import LoginPage
 from .user_page import UserPage
-from crawl.setting_manager import xiaohongshu_set_cookie
+from reatool.setting_manager import XhsSettings
 
 
 class XiaohongshuPage(QWidget):
@@ -35,5 +35,5 @@ class XiaohongshuPage(QWidget):
     @Slot(bool)
     def logout(self, success: bool):
         if success:
-            xiaohongshu_set_cookie("")
+            XhsSettings.cookie = ""
             self.layout.setCurrentWidget(self.login_page)

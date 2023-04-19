@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from .side_menu import SideMenuWidget
-from crawl.__version__ import __title__
+from reatool.__version__ import __title__
 
 
 class SideBar(QWidget):

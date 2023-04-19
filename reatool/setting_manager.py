@@ -19,16 +19,21 @@ class Setting:
         return value
 
 
-XIAOHONGSHU = "xiaohongshu"
+class XhsSettings:
 
-xiaohongshu_settings = Setting(XIAOHONGSHU)
+    def __init__(self):
+        super().__init__()
+        self.settings = Setting("xiaohongshu")
+        self.cookie_key = "cookie"
 
-XIAOHONGSHU_COOKIE = "cookie"
+    @property
+    def cookie(self):
+        value = self.settings.get_value(self.cookie_key)
+        return value
+
+    @cookie.setter
+    def cookie(self, cookie):
+        self.settings.set_value(self.cookie_key, cookie)
 
 
-def xiaohongshu_set_cookie(value):
-    xiaohongshu_settings.set_value(XIAOHONGSHU_COOKIE, value)
-
-
-def xiaohongshu_get_cookie():
-    return xiaohongshu_settings.get_value(XIAOHONGSHU_COOKIE)
+xhs_settings = XhsSettings()

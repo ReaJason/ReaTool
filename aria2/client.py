@@ -1,5 +1,5 @@
 import json
-
+import logging
 import requests
 
 from . import TOKEN, RPC_URL
@@ -11,10 +11,11 @@ class Aria2Client:
 
     @staticmethod
     def aria2_call(method, params=None):
+        token_str = f"token:{TOKEN}"
         if params is None:
-            params = []
+            params = [token_str]
         if params:
-            params.insert(0, f"token:{TOKEN}")
+            params.insert(0, token_str)
         payload = {
             'jsonrpc': '2.0',
             "id": "",
@@ -22,7 +23,7 @@ class Aria2Client:
             'params': params
         }
         response = requests.post(RPC_URL, data=json.dumps(payload), headers={'content-type': 'application/json'})
-        # print(response.text)
+        logging.debug(response.text)
         return response.json().get('result')
 
     @staticmethod
@@ -44,3 +45,11 @@ class Aria2Client:
     @staticmethod
     def shutdown():
         return Aria2Client.aria2_call("aria2.shutdown")
+
+    @staticmethod
+    def force_shutdown():
+        return Aria2Client.aria2_call("aria2.forceShutdown")
+
+    @staticmethod
+    def get_version():
+        return Aria2Client.aria2_call("aria2.getVersion")

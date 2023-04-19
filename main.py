@@ -1,18 +1,23 @@
 import os
 import sys
-
 from PySide6.QtWidgets import QApplication
-from crawl import MainWidget
+from reatool import MainWidget
 from aria2.server import Aria2Server
+import reatool.log
 
 sys.path.append(os.path.dirname(__file__))
 
 if __name__ == "__main__":
     app = QApplication()
+    app.setStyle("fusion")
     Aria2Server.start()
     main_widget = MainWidget()
     main_widget.show()
-    with open("style.qss", "r") as f:
-        app.setStyleSheet(f.read())
+    app.setStyleSheet("""
+QWidget {
+    background-color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+}""")
 
     sys.exit(app.exec())

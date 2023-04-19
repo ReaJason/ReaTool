@@ -1,6 +1,6 @@
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QWidget, QStackedLayout, QHBoxLayout, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QStackedLayout, QHBoxLayout, QVBoxLayout, QMessageBox
 
 from .__version__ import __version__, __title__, __copyright__
 from .hitokoto_thread import HitokotoThread
@@ -11,14 +11,14 @@ from aria2.server import Aria2Server
 
 class MainWidget(QWidget):
     side_menu = [
+        # {
+        #     "label": "首页",
+        #     "lightIcon": "asserts/home-light.png",
+        #     "darkIcon": "asserts/home-dark.png",
+        #     "pageWidget": HomePage,
+        # },
         {
-            "label": "首页",
-            "lightIcon": "asserts/home-light.png",
-            "darkIcon": "asserts/home-dark.png",
-            "pageWidget": HomePage,
-        },
-        {
-            "label": "小红书爬虫",
+            "label": "小红书",
             "lightIcon": "asserts/spider-light.png",
             "darkIcon": "asserts/spider-dark.png",
             "pageWidget": XiaohongshuPage,
@@ -64,7 +64,7 @@ class MainWidget(QWidget):
 
         self.thread = HitokotoThread()
         self.thread.text_signal.connect(self.update_label)
-        self.thread.start()
+        # self.thread.start()
 
     @Slot(str)
     def page_change(self, current_row: int):
@@ -75,4 +75,12 @@ class MainWidget(QWidget):
         self.footer_widget.sentence_label.setText(sentence)
 
     def closeEvent(self, event) -> None:
-        Aria2Server.end()
+        reply = QMessageBox.question(self, '关闭',
+                                     "确认关闭吗?", QMessageBox.StandardButton.Ok |
+                                     QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+
+        if reply == QMessageBox.StandardButton.Ok:
+            event.accept()
+            Aria2Server.end()
+        else:
+            event.ignore()

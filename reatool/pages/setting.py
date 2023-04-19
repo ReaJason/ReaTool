@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton
 from PySide6.QtCore import QSettings, QDir
-from crawl.widget import Button
+from reatool.widget import Button
 
 
 class SettingPage(QWidget):

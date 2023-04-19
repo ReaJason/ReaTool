@@ -1,8 +1,8 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout
 
-from crawl.help import get_circle_image_from_url
-from crawl.widget import Button
+from reatool.help import get_circle_image_from_url
+from reatool.widget import Button
 
 
 class WelComeCard(QFrame):

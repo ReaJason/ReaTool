@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt, Slot, QByteArray, Signal
 from PySide6.QtGui import QPixmap, QShowEvent
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout
-from crawl.core import GenerateQrcodeThread, CheckQrcodeThread
+from reatool.core import GenerateQrcodeThread, CheckQrcodeThread
 
 
 class LoginPage(QWidget):
