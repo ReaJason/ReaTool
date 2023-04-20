@@ -79,7 +79,7 @@ class CheckQrcodeThread(QThread):
                 elif code_status == 2:
                     res["msg"] = "登录成功!"
                     self.check_status.emit(res)
-                    XhsSettings.cookie = xhs_client.cookie
+                    xhs_settings.cookie = xhs_client.cookie
                     break
                 self.check_status.emit(res)
                 time.sleep(1)
