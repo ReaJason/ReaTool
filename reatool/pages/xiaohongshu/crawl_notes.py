@@ -14,7 +14,7 @@ from reatool.core import GetUserNoteThread, NoteDownloadThread, GetUserThread, D
 
 
 def show_error(msg):
-    pass
+    QMessageBox.critical(None, '错误', msg, QMessageBox.StandardButton.Close)
 
 
 def add_row_to_table(model, props, note):
@@ -74,7 +74,7 @@ class CrawlUserNotes(QFrame):
         self.user_note_thread.note.connect(self.success_get_note)
         self.user_info_thread = GetUserThread()
         self.user_info_thread.user.connect(self.start_crawl)
-        self.user_info_thread.error.connect(show_error)
+        self.user_info_thread.error.connect(self.show_error)
 
         self.download_queue = queue.Queue()
 
@@ -116,6 +116,11 @@ class CrawlUserNotes(QFrame):
                   encoding="utf-8") as f:
             json.dump(self.note_info, f, ensure_ascii=False, indent=4)
         self.crawl_button.setText("下载中...")
+
+    @Slot(str)
+    def show_error(self, msg):
+        self.end_download()
+        show_error(msg)
 
     @Slot()
     def end_download(self):
@@ -191,6 +196,7 @@ class CrawlNote(QFrame):
 
         self.note_thread = GetNoteThread(self.note_queue)
         self.note_thread.note.connect(self.success_get_note)
+        self.note_thread.error.connect(self.show_error)
 
         self.download_thread = NoteDownloadThread(self.note_queue, self.download_queue)
         self.download_thread.complete.connect(self.end_crawl)
@@ -205,21 +211,24 @@ class CrawlNote(QFrame):
 
     @Slot(dict)
     def start_crawl(self, user):
-        self.crawl_button.setEnabled(False)
-        self.crawl_button.setText("获取中...")
-        self.note_id_edit.setEnabled(False)
-
         note_id = self.note_id_edit.text().strip()
-
-        self.note_thread.note_id = note_id
-        self.note_thread.start()
-
-        self.download_thread.start()
-        self.download_check_thread.start()
+        if note_id:
+            self.crawl_button.setEnabled(False)
+            self.crawl_button.setText("获取中...")
+            self.note_id_edit.setEnabled(False)
+            self.note_thread.note_id = note_id
+            self.note_thread.start()
+            self.download_thread.start()
+            self.download_check_thread.start()
 
     @Slot()
     def end_crawl(self):
         self.crawl_button.setText("下载中...")
+
+    @Slot(str)
+    def show_error(self, msg):
+        self.end_download()
+        show_error(msg)
 
     @Slot()
     def end_download(self):

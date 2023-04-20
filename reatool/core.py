@@ -115,7 +115,7 @@ class GetUserThread(QThread):
             self.user.emit(xhs_client.get_user_info(self.user_id))
         except Exception as e:
             logging.error(e)
-            self.error.emit(e)
+            self.error.emit(str(e))
 
 
 def get_note_by_id(note_id):
@@ -144,6 +144,7 @@ def get_note_by_id(note_id):
 
 class GetNoteThread(QThread):
     note = Signal(dict)
+    error = Signal(str)
     note_id = ""
 
     def __init__(self, queue):
@@ -157,6 +158,7 @@ class GetNoteThread(QThread):
             self.queue.put(None)
             self.note.emit(note)
         except Exception as e:
+            self.error.emit(str(e))
             logging.error(e)
 
 

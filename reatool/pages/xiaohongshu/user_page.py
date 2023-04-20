@@ -102,12 +102,10 @@ class UserPage(QWidget):
         if not user:
             self.fetch_success.emit(False)
             return
-        print(user)
         self.welcome_card.refresh(user)
 
     @Slot()
     def logout_success(self):
-        print("退出登录")
         self.logout.emit(True)
 
     def resizeEvent(self, event: QResizeEvent) -> None:
