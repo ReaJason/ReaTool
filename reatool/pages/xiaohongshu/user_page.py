@@ -186,8 +186,8 @@ class CrawlAbout(QFrame):
         pay_layout.addWidget(ali_pay)
         layout.addWidget(about_info)
         layout.addLayout(pay_layout)
+        layout.addWidget(QLabel("<center><h3>免责声明</h3></center>"))
         layout.addWidget(QLabel("""
-        <h3>免责声明</h3>
             <ol>
               <li>本软件采集到的内容均可在网页上获取到，所有内容版权归原作者所有。</li>
               <li>本软件提供的所有资源，仅可用于学习交流使用，未经原作者授权，禁止用于其他用途。</li>
