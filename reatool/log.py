@@ -24,7 +24,7 @@ console_log_handler = logging.StreamHandler()
 console_log_handler.setFormatter(formatter)
 
 # file log handler
-file_log_handler = logging.FileHandler(log_file_path)
+file_log_handler = logging.FileHandler(log_file_path, encoding="utf-8")
 file_log_handler.setFormatter(formatter)
 
 

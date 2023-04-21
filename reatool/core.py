@@ -209,11 +209,10 @@ class NoteDownloadThread(QThread):
 
             invalid_chars = '<>:"/\\|?*'
             title = re.sub('[{}]'.format(re.escape(invalid_chars)), '_', title)
-            if not title:
-                title = desc
+            title = title + "_" + note_id if title else note_id
 
             user_save_path = os.path.join(download_path, nickname)
-            new_dir_path = os.path.join(user_save_path, title + "_" + note_id)
+            new_dir_path = os.path.join(user_save_path, title)
 
             if not os.path.exists(new_dir_path):
                 os.makedirs(new_dir_path)
