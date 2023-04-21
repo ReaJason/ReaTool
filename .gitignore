@@ -4,3 +4,8 @@ conf.ini
 dist/
 build/
 pyside6/
+aria/
+download/
+log/
+*.zip
+aria2.html
