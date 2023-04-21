@@ -235,6 +235,8 @@ class NoteDownloadThread(QThread):
 
             with open(os.path.join(new_dir_path, "data.json"), "w", encoding="utf-8") as f:
                 json.dump(note, f, ensure_ascii=False, indent=4)
+            with open(os.path.join(new_dir_path, "文案.txt"), "w", encoding="utf-8") as f:
+                f.write(note["desc"])
         self.download_queue.put(None)
         self.complete.emit()
 
