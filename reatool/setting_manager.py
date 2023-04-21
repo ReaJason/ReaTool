@@ -1,4 +1,8 @@
+import logging
+
+import requests
 from PySide6.QtCore import QSettings
+import browser_cookie3
 
 
 class Setting:
@@ -19,6 +23,12 @@ class Setting:
         return value
 
 
+def get_cookie_from_local():
+    cj = browser_cookie3.load(domain_name=".xiaohongshu.com")
+    cookie_dict = requests.utils.dict_from_cookiejar(cj)
+    return ";".join([f"{key}={value}" for key, value in cookie_dict.items()])
+
+
 class XhsSettings:
 
     def __init__(self):
@@ -29,6 +39,11 @@ class XhsSettings:
     @property
     def cookie(self):
         value = self.settings.get_value(self.cookie_key)
+        if not value:
+            local = get_cookie_from_local()
+            logging.info(f"从本地加载 cookie 成功！，{local}")
+            self.cookie = local
+            return local
         return value
 
     @cookie.setter
