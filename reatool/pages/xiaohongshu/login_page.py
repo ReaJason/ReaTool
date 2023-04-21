@@ -32,13 +32,11 @@ class LoginPage(QWidget):
         self.check_qrcode_thread.check_status.connect(self.check_qrcode)
 
     def showEvent(self, event: QShowEvent) -> None:
-        print("logon page show")
         self.qrcode_thread.start()
 
     @Slot(dict)
     def get_qrcode(self, qrcode: dict):
         img_base64 = qrcode["base64"]
-        print(img_base64)
         q_pixmap = QPixmap()
         q_pixmap.loadFromData(QByteArray.fromBase64(img_base64.encode()))
         self.qrcode.setPixmap(q_pixmap)
