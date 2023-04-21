@@ -156,8 +156,8 @@ class CrawlNote(QFrame):
         layout = QVBoxLayout()
         tip = QLabel(
             "请在网页端打开笔记链接,也可将分享链接在网页打开。\n"
-            "例如：https://www.xiaohongshu.com/explore/643d436d0000000013006c29 \n"
-            "其中 643d436d0000000013006c29 即为笔记 ID")
+            "例如：https://www.xiaohongshu.com/explore/64425e520000000011010ca3 \n"
+            "其中 64425e520000000011010ca3 即为笔记 ID")
         tip.setWordWrap(True)
         tip.setOpenExternalLinks(True)
         tip.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
