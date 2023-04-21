@@ -1,8 +1,8 @@
 __title__ = "ReaTool"
 __description__ = "ReaJason's Tools"
 __url__ = "https://reajason.eu.org"
-__version__ = "v1.0.0"
-__build__ = 0x010000
+__version__ = "v1.0.1"
+__build__ = 0x010001
 __author__ = "ReaJason"
 __author_email__ = "reajason1225@gmail.com"
 __author_twitter__ = "@ReaJason_"
