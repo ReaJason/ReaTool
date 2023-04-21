@@ -195,16 +195,11 @@ class NoteDownloadThread(QThread):
         super().__init__()
         self.note_queue = note_queue
         self.download_queue = download_queue
-        self.index = 0
 
     def run(self) -> None:
-        self.index = 0
         while note := self.note_queue.get():
             title = note["title"]
-            desc = note["desc"]
             note_id = note["note_id"]
-            model_index = self.index
-            self.index += 1
             nickname = note["user"]["nickname"]
 
             invalid_chars = '<>:"/\\|?*'
@@ -229,7 +224,7 @@ class NoteDownloadThread(QThread):
                 gids.append(gid)
 
             self.download_queue.put({
-                "index": model_index,
+                "note_id": note_id,
                 "gids": gids
             })
 
@@ -242,7 +237,7 @@ class NoteDownloadThread(QThread):
 
 
 class DownloadCheckThread(QThread):
-    info_index = Signal(dict)
+    info = Signal(dict)
     complete = Signal()
 
     def __init__(self, queue):
@@ -251,10 +246,10 @@ class DownloadCheckThread(QThread):
 
     def run(self) -> None:
         while download := self.queue.get():
-            index = download["index"]
+            note_id = download["note_id"]
             gids = download["gids"]
             done = [0] * len(gids)
-            logging.info(f"正在检测第 {index} 个下载状态")
+            logging.info(f"正在检测 {note_id} 的下载状态")
             while True:
                 for i, gid in enumerate(gids):
                     res = Aria2Client.check_status(gid)
@@ -271,10 +266,10 @@ class DownloadCheckThread(QThread):
                         done_info = ""
                     else:
                         done_info = "一定是发生什么事情了"
-                    self.info_index.emit({"index": index, "info": done_info})
+                    self.info.emit({"note_id": note_id, "info": done_info})
 
                 if sum(done) == len(gids):
-                    self.info_index.emit({"index": index, "info": "下载完成"})
+                    self.info.emit({"note_id": note_id, "info": "下载完成"})
                     break
                 time.sleep(0.5)
         self.complete.emit()

@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import queue
 import subprocess
@@ -82,7 +81,7 @@ class CrawlUserNotes(QFrame):
         self.download_thread.complete.connect(self.end_crawl)
 
         self.download_check_thread = DownloadCheckThread(self.download_queue)
-        self.download_check_thread.info_index.connect(self.download_success)
+        self.download_check_thread.info.connect(self.download_success)
         self.download_check_thread.complete.connect(self.end_download)
 
         layout.addWidget(self.crawl_display_table)
@@ -136,8 +135,9 @@ class CrawlUserNotes(QFrame):
 
     @Slot(dict)
     def download_success(self, info_dict):
-        index = info_dict["index"]
+        note_id = info_dict["note_id"]
         info = info_dict["info"]
+        index = self.model.findItems(note_id, Qt.MatchFlag.MatchExactly)[0].row()
         if info:
             self.model.item(index, len(self.props) - 1).setText(info)
 
@@ -202,7 +202,7 @@ class CrawlNote(QFrame):
         self.download_thread.complete.connect(self.end_crawl)
 
         self.download_check_thread = DownloadCheckThread(self.download_queue)
-        self.download_check_thread.info_index.connect(self.download_success)
+        self.download_check_thread.info.connect(self.download_success)
         self.download_check_thread.complete.connect(self.end_download)
 
         layout.addWidget(self.crawl_display_table)
@@ -244,8 +244,9 @@ class CrawlNote(QFrame):
 
     @Slot(dict)
     def download_success(self, info_dict):
-        index = info_dict["index"]
+        note_id = info_dict["note_id"]
         info = info_dict["info"]
+        index = self.model.findItems(note_id, Qt.MatchFlag.MatchExactly)[0].row()
         if info:
             self.model.item(index, len(self.props) - 1).setText(info)
 
