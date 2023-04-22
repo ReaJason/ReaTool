@@ -40,10 +40,14 @@ class XhsSettings:
     def cookie(self):
         value = self.settings.get_value(self.cookie_key)
         if not value:
-            local = get_cookie_from_local()
-            logging.info(f"从本地加载 cookie 成功！，{local}")
-            self.cookie = local
-            return local
+            try:
+                local = get_cookie_from_local()
+                logging.info(f"从本地加载 cookie 成功！，{local}")
+                self.cookie = local
+                return local
+            except Exception as e:
+                logging.error(f"从本地加载 cookie 失败, {e}")
+                return ""
         return value
 
     @cookie.setter
