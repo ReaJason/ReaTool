@@ -164,12 +164,14 @@ class CrawlAbout(QFrame):
         about_info = QLabel("""
         <center>
             <h3>关于</h3>
-            当前爬虫使用的是封装的 Python 小工具 <a href='https://github.com/ReaJason/xhs'>xhs</a> 欢迎 star ✨
+            当前爬虫使用的是封装的 Python 小工具 <a href='https://github.com/ReaJason/xhs'>xhs</a> 欢迎 star ✨ <br>
+            更新地址：<a href='https://lingsiki.lanzouw.com/b0en2jwzg#passwd=cih8'>https://lingsiki.lanzouw.com/b0en2jwzg</a> 密码:cih8
             <h3>联系我</h3>
             <ul>
                 <li>博客✨：<a href='https://reajason.eu.org'>reajason.eu.org</a></li>
                 <li>邮箱📮：<a href='mailto:reajason1225@gmail.com'>reajason1225@gmail.com</a></li>
                 <li>GitHub🎉：<a href='https://github.com/ReaJason'>ReaJason</a></li>
+                <li>反馈 Q 群：<a href='https://qm.qq.com/cgi-bin/qm/qr?k=huecmkD_IJakRzgUqAuvD9AuNcZMDD0M&jump_from=webapi&authKey=RmsSlr5gKzu2VKybffEKLex914gFYK7R6BmJZVSGbrf5+ZqG0eIAttkw0+HlMjrQ'>615163958</a></li>
             </ul>
             <h3>Buy me a coffee</h3>
             如果觉得这个小工具有帮到您的话，欢迎打赏一杯奶茶 ☕️ 
