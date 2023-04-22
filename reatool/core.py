@@ -175,7 +175,6 @@ class GetUserNoteThread(QThread):
         cursor = ""
         while has_more:
             res = xhs_client.get_user_notes(self.user_id, cursor)
-            time.sleep(5)
             has_more = res["has_more"]
             cursor = res["cursor"]
             note_ids = map(lambda item: item["note_id"], res["notes"])
@@ -185,6 +184,7 @@ class GetUserNoteThread(QThread):
                 self.queue.put(result)
                 self.note.emit(result)
                 time.sleep(0.5)
+            time.sleep(5)
         self.queue.put(None)
 
 
@@ -259,6 +259,7 @@ class DownloadCheckThread(QThread):
                         done[i] = 1
                         done_info = ""
                     elif status == "active":
+                        time.sleep(0.5)
                         done_info = f"下载中, {round(int(res['downloadSpeed']) / 1000000, 2)} M/s"
                     elif status == "error":
                         done_info = "下载出错"
@@ -271,5 +272,4 @@ class DownloadCheckThread(QThread):
                 if sum(done) == len(gids):
                     self.info.emit({"note_id": note_id, "info": "下载完成"})
                     break
-                time.sleep(0.5)
         self.complete.emit()
