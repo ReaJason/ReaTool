@@ -51,11 +51,16 @@ class GenerateQrcodeThread(QThread):
     获取验证码的线程
     """
     qrcode = Signal(dict)
+    error = Signal(str)
 
     def run(self) -> None:
-        qr_dict = xhs_client.get_qrcode()
-        qr_dict.update({"base64": get_qrcode_base64(qr_dict["url"])})
-        self.qrcode.emit(qr_dict)
+        try:
+            qr_dict = xhs_client.get_qrcode()
+            qr_dict.update({"base64": get_qrcode_base64(qr_dict["url"])})
+            self.qrcode.emit(qr_dict)
+        except Exception as e:
+            logging.error(e)
+            self.error.emit("创建二维码失败，请刷新")
 
 
 class CheckQrcodeThread(QThread):
