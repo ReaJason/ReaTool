@@ -12,7 +12,7 @@ from .crawl_notes import CrawlUserNotes, CrawlNote
 
 class UserPage(QWidget):
     fetch_success = Signal(bool)
-    logout = Signal(bool)
+    logout = Signal()
 
     def __init__(self):
         super().__init__()
@@ -106,7 +106,7 @@ class UserPage(QWidget):
 
     @Slot()
     def logout_success(self):
-        self.logout.emit(True)
+        self.logout.emit()
 
     def resizeEvent(self, event: QResizeEvent) -> None:
         pass

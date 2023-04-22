@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget, QStackedLayout
 from .login_page import LoginPage
 from .user_page import UserPage
 from reatool.setting_manager import xhs_settings
+from reatool.core import xhs_client
 
 
 class XiaohongshuPage(QWidget):
@@ -21,19 +22,19 @@ class XiaohongshuPage(QWidget):
         self.layout.addWidget(self.login_page)
         self.setLayout(self.layout)
 
-    @Slot(bool)
-    def login_success(self, success: bool):
-        if success:
-            self.layout.setCurrentWidget(self.user_page)
-            self.user_page.get_self_info_thread.start()
+    @Slot()
+    def login_success(self):
+        self.layout.setCurrentWidget(self.user_page)
+        self.user_page.get_self_info_thread.start()
 
     @Slot(bool)
     def get_user_success(self, success: bool):
         if not success:
             self.layout.setCurrentWidget(self.login_page)
 
-    @Slot(bool)
-    def logout(self, success: bool):
-        if success:
-            xhs_settings.cookie = ""
-            self.layout.setCurrentWidget(self.login_page)
+    @Slot()
+    def logout(self):
+        xhs_settings.cookie = ""
+        xhs_client.session.cookies.clear()
+        xhs_client.cookie = "webId=1"
+        self.layout.setCurrentWidget(self.login_page)
