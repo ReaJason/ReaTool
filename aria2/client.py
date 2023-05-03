@@ -14,7 +14,7 @@ class Aria2Client:
         token_str = f"token:{TOKEN}"
         if params is None:
             params = [token_str]
-        if params:
+        else:
             params.insert(0, token_str)
         payload = {
             'jsonrpc': '2.0',
@@ -39,8 +39,19 @@ class Aria2Client:
         return Aria2Client.aria2_call("aria2.getGlobalStat")
 
     @staticmethod
-    def get_active_info():
+    def get_active_list():
+        """https://aria2.github.io/manual/en/html/aria2c.html#aria2.tellActive"""
         return Aria2Client.aria2_call('aria2.tellActive')
+
+    @staticmethod
+    def get_waiting_list(offset=0, num=1000):
+        """https://aria2.github.io/manual/en/html/aria2c.html#aria2.tellWaiting"""
+        return Aria2Client.aria2_call("aria2.tellWaiting", [offset, num])
+
+    @staticmethod
+    def get_stopped_list(offset=0, num=1000):
+        """https://aria2.github.io/manual/en/html/aria2c.html#aria2.tellStopped"""
+        return Aria2Client.aria2_call("aria2.tellStopped", [offset, num])
 
     @staticmethod
     def shutdown():
