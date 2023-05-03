@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import time
+from datetime import datetime
 
 import segno
 from PySide6.QtCore import QThread, Signal
@@ -142,6 +143,8 @@ def get_note_by_id(note_id):
         "comment_count": interact_info["comment_count"],
         "liked_count": interact_info["liked_count"],
         "share_count": interact_info["share_count"],
+        "time": note["time"],
+        "last_update_time": note["last_update_time"],
     }
     return result
 
@@ -170,6 +173,7 @@ class GetUserNoteThread(QThread):
     user_id = ""
     note = Signal(dict)
     error = Signal(str)
+    completed = Signal()
 
     def __init__(self, queue):
         super().__init__()
@@ -181,28 +185,34 @@ class GetUserNoteThread(QThread):
         while has_more:
             try:
                 res = xhs_client.get_user_notes(self.user_id, cursor)
-                has_more = res["has_more"]
-                cursor = res["cursor"]
-                note_ids = map(lambda item: item["note_id"], res["notes"])
-
+                note_ids = list(map(lambda item: item["note_id"], res["notes"]))
+                logging.info(f"当前页笔记数：{len(note_ids)}")
                 for note_id in note_ids:
                     try:
                         result = get_note_by_id(note_id)
                         self.queue.put(result)
                         self.note.emit(result)
                     except Exception as e:
-                        pass
-                        # self.error.emit(f"获取笔记内容错误【{note_id}】\n【{e}】 \n 当前笔记已忽略")
+                        logging.warning(f"获取笔记内容错误【{note_id}】\n【{e}】 \n 当前笔记已忽略")
+                        if "网络连接异常" in e:
+                            raise Exception()
                     else:
-                        time.sleep(0.5)
+                        time.sleep(1)
+                has_more = res["has_more"]
+                cursor = res["cursor"]
             except Exception as e:
                 logging.error(e)
-                self.error.emit(f"获取博主笔记错误 \n【{e}】 \n 将暂停一分钟后继续爬取...")
-                time.sleep(60)
-            else:
-                time.sleep(5)
-
-        self.queue.put(None)
+                self.error.emit(f"获取博主笔记错误 \n【{e}】 \n 将暂停三分钟后继续爬取...")
+                time.sleep(60 * 3)
+            while True and has_more:
+                waiting_list = Aria2Client.get_waiting_list()
+                logging.debug(f"当前等待下载数为：{len(waiting_list)}, 循环等待至其低于 10 后才获取下一页数据")
+                if len(waiting_list) <= 5 * 2:
+                    break
+                else:
+                    time.sleep(10)
+        logging.info(f"{self.user_id} 博主笔记爬取结束")
+        self.completed.emit()
 
 
 class NoteDownloadThread(QThread):
@@ -217,10 +227,10 @@ class NoteDownloadThread(QThread):
             title = note["title"]
             note_id = note["note_id"]
             nickname = note["user"]["nickname"]
-
+            created_time = datetime.fromtimestamp(note["time"] / 1000).strftime("%y%m%d")
             invalid_chars = '<>:"/\\|?*'
             title = re.sub('[{}]'.format(re.escape(invalid_chars)), '_', title)
-            title = title + "_" + note_id if title else note_id
+            title = created_time + "_" + (title + "_" + note_id if title else note_id)
 
             user_save_path = os.path.join(download_path, nickname)
             new_dir_path = os.path.join(user_save_path, title)
@@ -231,10 +241,10 @@ class NoteDownloadThread(QThread):
             img_urls = note["img_urls"]
             if len(img_urls):
                 for index, img_url in enumerate(img_urls):
-                    gid = Aria2Client.add_url([img_url], f"{title}{index}.png", new_dir_path)
+                    Aria2Client.add_url([img_url], f"{title}{index}.png", new_dir_path)
             video_url = note["video_url"]
             if video_url:
-                gid = Aria2Client.add_url([video_url], f"{title}.mp4", new_dir_path)
+                Aria2Client.add_url([video_url], f"{title}.mp4", new_dir_path)
 
             with open(os.path.join(new_dir_path, "data.json"), "w", encoding="utf-8") as f:
                 json.dump(note, f, ensure_ascii=False, indent=4)
