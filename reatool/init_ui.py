@@ -1,11 +1,12 @@
+import logging
+
 from PySide6.QtCore import Qt, QThread, Signal, Slot
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
+from aria2.server import Aria2Server
+from .__version__ import __version__
 from .log import init_log
 from .main_ui import MainWidget
-import logging
-from aria2.server import Aria2Server
 
 
 class InitThread(QThread):
@@ -33,27 +34,28 @@ class InitWidget(QWidget):
     def __init__(self, main_widget: MainWidget):
         super().__init__()
         self.main_widget = main_widget
-        self.setFixedSize(300, 200)
+        self.setFixedSize(300, 180)
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         layout = QVBoxLayout(self)
         widget = QWidget()
-        widget.setStyleSheet("""
-        background-color: #e4866a;
-        border-radius: 6px;
-        """)
+        widget.setStyleSheet("""background-color: #e4866a;border-radius: 6px;""")
         widget_layout = QVBoxLayout(widget)
         widget_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label = QLabel("👋 Welcome to ReaTool!")
-        title_label.setStyleSheet("""
-            font-size: 20px;
-            font-weight: bold;
-        """)
+        title_label.setStyleSheet("""font-size: 20px;font-weight: bold;""")
+        widget_layout.addStretch(1)
         widget_layout.addWidget(title_label)
+        widget_layout.addStretch(1)
         self.label = QLabel("正在初始化中......")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         widget_layout.addWidget(self.label)
 
+        version_label = QLabel(__version__)
+        version_label.setStyleSheet("""font-size: 12px;""")
+        version_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        widget_layout.addStretch(1)
+        widget_layout.addWidget(version_label)
         self.init_thread = InitThread(self)
         self.init_thread.msg.connect(self.show_msg)
         self.init_thread.completed.connect(self.init_completed)
