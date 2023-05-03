@@ -9,12 +9,8 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QTableView, QMes
 
 from reatool.core import GetUserNoteThread, NoteDownloadThread, GetUserThread, download_path, \
     GetNoteThread
-from reatool.utils import open_directory
+from reatool.utils import open_directory, show_error_message
 from reatool.widget import Button, LineEdit, init_table
-
-
-def show_error(msg):
-    QMessageBox.critical(None, '错误', msg, QMessageBox.StandardButton.Close)
 
 
 def add_row_to_table(model, props, note):
@@ -114,7 +110,7 @@ class CrawlUserNotes(QFrame):
     @Slot(str)
     def show_error(self, msg):
         self.end_download()
-        show_error(msg)
+        show_error_message(msg)
 
     @Slot()
     def end_download(self):
@@ -197,7 +193,7 @@ class CrawlNote(QFrame):
     @Slot(str)
     def show_error(self, msg):
         self.end_download()
-        show_error(msg)
+        show_error_message(msg)
 
     @Slot()
     def end_download(self):
