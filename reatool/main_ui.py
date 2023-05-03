@@ -30,7 +30,6 @@ class MainWidget(QWidget):
         self.resize(1280, 720)
         self.setMinimumSize(1280, 720)
         self.setWindowTitle(__title__)
-        self.setWindowIcon(QPixmap("asserts/logo.png"))
 
         menu_widget = SideBar(self.side_menu)
 
