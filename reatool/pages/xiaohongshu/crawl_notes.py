@@ -1,11 +1,10 @@
 import json
 import os
 import queue
-import subprocess
 
 from PySide6.QtCore import QSize, Qt, Slot
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QTableView, QMessageBox, QLabel
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QTableView, QLabel
 
 from reatool.core import GetUserNoteThread, NoteDownloadThread, GetUserThread, download_path, \
     GetNoteThread
