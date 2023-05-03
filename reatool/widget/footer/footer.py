@@ -1,6 +1,5 @@
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
-from reatool.hitokoto_thread import HitokotoThread
 
 
 class Footer(QWidget):

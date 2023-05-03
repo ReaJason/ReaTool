@@ -1,12 +1,10 @@
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QWidget, QStackedLayout, QHBoxLayout, QVBoxLayout, QMessageBox
 
-from .__version__ import __version__, __title__, __copyright__
-from .hitokoto_thread import HitokotoThread
-from .pages import HomePage, XiaohongshuPage
-from .widget import SideBar, Footer
 from aria2.server import Aria2Server
+from .__version__ import __version__, __title__, __copyright__
+from .pages import XiaohongshuPage
+from .widget import SideBar, Footer
 
 
 class MainWidget(QWidget):
@@ -25,12 +23,14 @@ class MainWidget(QWidget):
         },
     ]
 
-    def __init__(self, parent=None):
-        super(MainWidget, self).__init__(parent)
+    def __init__(self):
+        super().__init__()
+        self.page_layout = None
         self.resize(1280, 720)
         self.setMinimumSize(1280, 720)
         self.setWindowTitle(__title__)
 
+    def init_ui(self):
         menu_widget = SideBar(self.side_menu)
 
         # 默认显示打开首页
@@ -42,7 +42,7 @@ class MainWidget(QWidget):
         main_widget = QVBoxLayout()
 
         # header_widget = Header()
-        self.footer_widget = Footer(__copyright__, __version__)
+        footer_widget = Footer(__copyright__, __version__)
 
         self.page_layout = QStackedLayout()
         for menu in self.side_menu:
@@ -50,7 +50,7 @@ class MainWidget(QWidget):
 
         # main_widget.addWidget(header_widget)
         main_widget.addLayout(self.page_layout)
-        main_widget.addWidget(self.footer_widget)
+        main_widget.addWidget(footer_widget)
         main_widget.setSpacing(0)
         main_widget.setContentsMargins(0, 0, 0, 0)
 
@@ -61,17 +61,9 @@ class MainWidget(QWidget):
         layout.addLayout(main_widget)
         self.setLayout(layout)
 
-        self.thread = HitokotoThread()
-        self.thread.text_signal.connect(self.update_label)
-        # self.thread.start()
-
     @Slot(str)
     def page_change(self, current_row: int):
         self.page_layout.setCurrentIndex(current_row)
-
-    @Slot(str)
-    def update_label(self, sentence):
-        self.footer_widget.sentence_label.setText(sentence)
 
     def closeEvent(self, event) -> None:
         reply = QMessageBox.question(self, '关闭',
