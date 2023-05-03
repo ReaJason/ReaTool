@@ -61,8 +61,10 @@ class Aria2Server:
                                    stderr=subprocess.PIPE,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
         time.sleep(1)
-        version = Aria2Client.get_version()
-        logging.info(f"aria2 {version['version']} 启动成功!")
+
+    @staticmethod
+    def get_version():
+        return Aria2Client.get_version()
 
     @staticmethod
     def end():
