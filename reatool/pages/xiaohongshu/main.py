@@ -2,7 +2,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QWidget, QStackedLayout
 from .login_page import LoginPage
 from .user_page import UserPage
-from reatool.setting_manager import xhs_settings
+from reatool.setting import xhs_settings
 from reatool.core import xhs_client
 
 
