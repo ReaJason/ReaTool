@@ -195,14 +195,14 @@ class GetUserNoteThread(QThread):
                     except Exception as e:
                         logging.warning(f"获取笔记内容错误【{note_id}】\n【{e}】 \n 当前笔记已忽略")
                         if "网络连接异常" in e:
-                            raise Exception()
+                            raise e
                     else:
                         time.sleep(1)
                 has_more = res["has_more"]
                 cursor = res["cursor"]
             except Exception as e:
                 logging.error(e)
-                self.error.emit(f"获取博主笔记错误 \n【{e}】 \n 将暂停三分钟后继续爬取...")
+                self.error.emit(f"获取博主笔记错误 \n【网络连接异常】 \n 将暂停三分钟后继续爬取...")
                 time.sleep(60 * 3)
             while True and has_more:
                 waiting_list = Aria2Client.get_waiting_list()
