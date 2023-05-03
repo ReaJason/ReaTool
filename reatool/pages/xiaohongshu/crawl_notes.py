@@ -1,13 +1,14 @@
 import json
 import os
 import queue
+import webbrowser
 
-from PySide6.QtCore import QSize, Qt, Slot
-from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
+from PySide6.QtCore import QSize, Qt, Slot, QUrl
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont, QDesktopServices
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QTableView, QLabel
 
 from reatool.core import GetUserNoteThread, NoteDownloadThread, GetUserThread, download_path, \
-    GetNoteThread
+    GetNoteThread, root_path
 from reatool.utils import open_directory, show_error_message
 from reatool.widget import Button, LineEdit, init_table
 
@@ -23,6 +24,14 @@ def add_row_to_table(model, props, note):
         item.setFont(font)
         items.append(item)
     model.appendRow(items)
+
+
+def open_url(url):
+    webbrowser.open_new_tab(url)
+
+
+def open_aria2_html():
+    open_url(f'file:///{os.path.join(root_path, "aria2c.html")}')
 
 
 class CrawlUserNotes(QFrame):
@@ -47,12 +56,17 @@ class CrawlUserNotes(QFrame):
         self.user_id_edit = LineEdit()
         self.user_id_edit.setPlaceholderText("请输入博主ID")
         self.crawl_button = Button("开始")
+        open_download_link_button = Button("查看下载")
+        open_download_link_button.clicked.connect(open_aria2_html)
         open_download_path_button = Button("打开下载文件夹")
         open_download_path_button.clicked.connect(lambda: open_directory(self.user_save_path))
         open_download_path_button.setFixedWidth(150)
+
         self.crawl_button.clicked.connect(self.get_user_info)
+
         crawl_config_layout.addWidget(self.user_id_edit)
         crawl_config_layout.addWidget(self.crawl_button)
+        crawl_config_layout.addWidget(open_download_link_button)
         crawl_config_layout.addWidget(open_download_path_button)
         layout.addLayout(crawl_config_layout)
 
@@ -65,15 +79,17 @@ class CrawlUserNotes(QFrame):
         self.props = ["note_id", "title", "desc", "liked_count", "comment_count", "collected_count"]
         self.crawl_display_table.setModel(self.model)
         self.note_queue = queue.Queue()
+        self.crawl_completed = False
         self.user_note_thread = GetUserNoteThread(self.note_queue)
         self.user_note_thread.note.connect(self.success_get_note)
         self.user_note_thread.error.connect(self.show_error)
+        self.user_note_thread.completed.connect(self.end_crawl)
         self.user_info_thread = GetUserThread()
         self.user_info_thread.user.connect(self.start_crawl)
         self.user_info_thread.error.connect(self.show_error)
 
         self.download_thread = NoteDownloadThread(self.note_queue)
-        self.download_thread.complete.connect(self.end_crawl)
+        self.download_thread.complete.connect(self.end_download)
 
         layout.addWidget(self.crawl_display_table)
         self.setLayout(layout)
@@ -82,6 +98,7 @@ class CrawlUserNotes(QFrame):
     @Slot(dict)
     def start_crawl(self, user):
         self.crawl_button.setEnabled(False)
+        self.crawl_completed = False
         self.crawl_button.setText("获取中...")
         self.user_id_edit.setEnabled(False)
         user_id = self.user_id_edit.text().strip()
@@ -104,24 +121,27 @@ class CrawlUserNotes(QFrame):
         with open(os.path.join(self.user_save_path, f"{self.user_id_edit.text().strip()}.json"), "w",
                   encoding="utf-8") as f:
             json.dump(self.note_info, f, ensure_ascii=False, indent=4)
+        self.crawl_completed = True
         self.end_download()
 
     @Slot(str)
     def show_error(self, msg):
-        self.end_download()
         show_error_message(msg)
 
     @Slot()
     def end_download(self):
-        self.crawl_button.setEnabled(True)
-        self.crawl_button.setText("开始")
-        self.user_id_edit.setEnabled(True)
+        if self.crawl_completed:
+            self.crawl_button.setEnabled(True)
+            self.crawl_button.setText("开始")
+            self.user_id_edit.setEnabled(True)
 
     @Slot(dict)
     def success_get_note(self, note):
         self.note_info.append(note)
         self.user_save_path = os.path.join(download_path, note["user_name"])
-        add_row_to_table(self.model, self.props, note)
+        item = self.model.findItems(note["note_id"], Qt.MatchFlag.MatchExactly)
+        if not len(item):
+            add_row_to_table(self.model, self.props, note)
 
 
 class CrawlNote(QFrame):
@@ -145,12 +165,15 @@ class CrawlNote(QFrame):
         self.note_id_edit = LineEdit()
         self.note_id_edit.setPlaceholderText("请输入笔记ID")
         self.crawl_button = Button("开始")
+        open_download_link_button = Button("查看下载")
+        open_download_link_button.clicked.connect(open_aria2_html)
         open_download_path_button = Button("打开下载文件夹")
         open_download_path_button.clicked.connect(lambda: open_directory(self.user_save_path))
         open_download_path_button.setFixedWidth(150)
         self.crawl_button.clicked.connect(self.start_crawl)
         crawl_config_layout.addWidget(self.note_id_edit)
         crawl_config_layout.addWidget(self.crawl_button)
+        crawl_config_layout.addWidget(open_download_link_button)
         crawl_config_layout.addWidget(open_download_path_button)
         layout.addLayout(crawl_config_layout)
 
@@ -191,7 +214,6 @@ class CrawlNote(QFrame):
 
     @Slot(str)
     def show_error(self, msg):
-        self.end_download()
         show_error_message(msg)
 
     @Slot()
