@@ -1,4 +1,3 @@
-import asyncio
 import base64
 import io
 import json
@@ -12,9 +11,9 @@ from PySide6.QtCore import QThread, Signal
 from xhs import XhsClient
 
 from aria2.client import Aria2Client
-from .setting_manager import xhs_settings
+from .setting import xhs_settings
 
-cookie = xhs_settings.cookie or "webId=1"
+cookie = xhs_settings.cookie
 xhs_client = XhsClient(cookie)
 root_path = os.path.abspath(".")
 download_path = os.path.join(root_path, "download")
@@ -170,6 +169,7 @@ class GetNoteThread(QThread):
 class GetUserNoteThread(QThread):
     user_id = ""
     note = Signal(dict)
+    error = Signal(str)
 
     def __init__(self, queue):
         super().__init__()
@@ -179,27 +179,38 @@ class GetUserNoteThread(QThread):
         has_more = True
         cursor = ""
         while has_more:
-            res = xhs_client.get_user_notes(self.user_id, cursor)
-            has_more = res["has_more"]
-            cursor = res["cursor"]
-            note_ids = map(lambda item: item["note_id"], res["notes"])
+            try:
+                res = xhs_client.get_user_notes(self.user_id, cursor)
+                has_more = res["has_more"]
+                cursor = res["cursor"]
+                note_ids = map(lambda item: item["note_id"], res["notes"])
 
-            for note_id in note_ids:
-                result = get_note_by_id(note_id)
-                self.queue.put(result)
-                self.note.emit(result)
-                time.sleep(0.5)
-            time.sleep(5)
+                for note_id in note_ids:
+                    try:
+                        result = get_note_by_id(note_id)
+                        self.queue.put(result)
+                        self.note.emit(result)
+                    except Exception as e:
+                        pass
+                        # self.error.emit(f"获取笔记内容错误【{note_id}】\n【{e}】 \n 当前笔记已忽略")
+                    else:
+                        time.sleep(0.5)
+            except Exception as e:
+                logging.error(e)
+                self.error.emit(f"获取博主笔记错误 \n【{e}】 \n 将暂停一分钟后继续爬取...")
+                time.sleep(60)
+            else:
+                time.sleep(5)
+
         self.queue.put(None)
 
 
 class NoteDownloadThread(QThread):
     complete = Signal()
 
-    def __init__(self, note_queue, download_queue):
+    def __init__(self, note_queue):
         super().__init__()
         self.note_queue = note_queue
-        self.download_queue = download_queue
 
     def run(self) -> None:
         while note := self.note_queue.get():
@@ -218,63 +229,15 @@ class NoteDownloadThread(QThread):
                 os.makedirs(new_dir_path)
 
             img_urls = note["img_urls"]
-            gids = []
             if len(img_urls):
                 for index, img_url in enumerate(img_urls):
                     gid = Aria2Client.add_url([img_url], f"{title}{index}.png", new_dir_path)
-                    gids.append(gid)
             video_url = note["video_url"]
             if video_url:
                 gid = Aria2Client.add_url([video_url], f"{title}.mp4", new_dir_path)
-                gids.append(gid)
-
-            self.download_queue.put({
-                "note_id": note_id,
-                "gids": gids
-            })
 
             with open(os.path.join(new_dir_path, "data.json"), "w", encoding="utf-8") as f:
                 json.dump(note, f, ensure_ascii=False, indent=4)
             with open(os.path.join(new_dir_path, "文案.txt"), "w", encoding="utf-8") as f:
                 f.write(note["desc"])
-        self.download_queue.put(None)
-        self.complete.emit()
-
-
-class DownloadCheckThread(QThread):
-    info = Signal(dict)
-    complete = Signal()
-
-    def __init__(self, queue):
-        super().__init__()
-        self.queue = queue
-
-    def run(self) -> None:
-        while download := self.queue.get():
-            note_id = download["note_id"]
-            gids = download["gids"]
-            done = [0] * len(gids)
-            logging.info(f"正在检测 {note_id} 的下载状态")
-            while True:
-                for i, gid in enumerate(gids):
-                    res = Aria2Client.check_status(gid)
-                    status = res["status"]
-                    logging.info(res)
-                    if status == "complete":
-                        done[i] = 1
-                        done_info = ""
-                    elif status == "active":
-                        time.sleep(0.5)
-                        done_info = f"下载中, {round(int(res['downloadSpeed']) / 1000000, 2)} M/s"
-                    elif status == "error":
-                        done_info = "下载出错"
-                    elif status == "waiting":
-                        done_info = ""
-                    else:
-                        done_info = "一定是发生什么事情了"
-                    self.info.emit({"note_id": note_id, "info": done_info})
-
-                if sum(done) == len(gids):
-                    self.info.emit({"note_id": note_id, "info": "下载完成"})
-                    break
         self.complete.emit()

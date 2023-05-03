@@ -47,7 +47,7 @@ class XhsSettings:
                 return local
             except Exception as e:
                 logging.error(f"从本地加载 cookie 失败, {e}")
-                return ""
+                return "webId=1"
         return value
 
     @cookie.setter
@@ -55,4 +55,12 @@ class XhsSettings:
         self.settings.set_value(self.cookie_key, cookie)
 
 
+class Aria2Settings:
+
+    def __init__(self):
+        super().__init__()
+        self.settings = Setting("aria2")
+
+
 xhs_settings = XhsSettings()
+aria2_settings = Aria2Settings()

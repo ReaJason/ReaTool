@@ -1,13 +1,11 @@
-import time
-
-from PySide6.QtCore import Qt, Slot, Signal, QSize, QThread
+from PySide6.QtCore import Qt, Slot, Signal, QSize
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QResizeEvent, QFont, QPixmap
-from PySide6.QtWidgets import QFrame, QLabel, QHBoxLayout, QVBoxLayout, QWidget, QTableView, QTabBar, QTabWidget
+from PySide6.QtWidgets import QFrame, QLabel, QHBoxLayout, QVBoxLayout, QWidget, QTableView, QTabWidget
 
 from reatool.core import GetSelfUserThread
 from reatool.widget import Button, LineEdit, init_table
-from .welcome import WelComeCard
 from .crawl_notes import CrawlUserNotes, CrawlNote
+from .welcome import WelComeCard
 
 
 class UserPage(QWidget):
@@ -36,7 +34,6 @@ class UserPage(QWidget):
         tab_bar.addTab(CrawlNote(), "笔记详情")
         tab_bar.addTab(CrawlUserNotes(), "用户笔记")
         # tab_bar.addTab(CrawlComments(), "笔记评论")
-        # tab_bar.addTab(CrawlSetting(), "设置")
         tab_bar.addTab(CrawlAbout(), "关于")
         tab_bar.setStyleSheet("""
         QTabWidget::pane {
@@ -146,14 +143,6 @@ class CrawlComments(QFrame):
             item.setFont(font)
             items.append(item)
         self.model.appendRow(items)
-
-
-class CrawlSetting(QFrame):
-    def __init__(self):
-        super().__init__()
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        self.setStyleSheet("""border: none;margin:0;""")
 
 
 class CrawlAbout(QFrame):
