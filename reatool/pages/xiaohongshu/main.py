@@ -35,6 +35,5 @@ class XiaohongshuPage(QWidget):
     @Slot()
     def logout(self):
         xhs_settings.cookie = ""
-        xhs_client.session.cookies.clear()
-        xhs_client.cookie = "webId=1"
+        xhs_client.cookie = ""
         self.layout.setCurrentWidget(self.login_page)

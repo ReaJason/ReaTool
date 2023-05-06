@@ -41,13 +41,13 @@ class XhsSettings:
         value = self.settings.get_value(self.cookie_key)
         if not value:
             try:
-                local = get_cookie_from_local() or "webId=1"
+                local = get_cookie_from_local()
                 logging.info(f"从本地加载 cookie 成功！，{local}")
                 self.cookie = local
                 return local
             except Exception as e:
                 logging.error(f"从本地加载 cookie 失败, {e}")
-                return "webId=1"
+                return ""
         return value
 
     @cookie.setter

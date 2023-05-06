@@ -9,7 +9,7 @@ from datetime import datetime
 
 import segno
 from PySide6.QtCore import QThread, Signal
-from xhs import XhsClient
+from xhs import XhsClient, IPBlockError
 
 from aria2.client import Aria2Client
 from .setting import xhs_settings
@@ -192,12 +192,16 @@ class GetUserNoteThread(QThread):
                         result = get_note_by_id(note_id)
                         self.queue.put(result)
                         self.note.emit(result)
+                    except IPBlockError as e:
+                        raise e
                     except Exception as e:
-                        logging.warning(f"获取笔记内容错误【{note_id}】【{e}】 当前笔记已忽略")
-                        if "网络连接异常" in repr(e):
-                            raise e
+                        if "笔记状态异常" in repr(e):
+                            logging.warning(f"【{note_id}】笔记状态异常，已忽略")
+                        else:
+                            logging.error(e)
+                            raise
                     else:
-                        time.sleep(1)
+                        time.sleep(0.5)
                 has_more = res["has_more"]
                 cursor = res["cursor"]
             except Exception as e:
