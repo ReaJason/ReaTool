@@ -35,8 +35,6 @@ class MainWidget(QWidget):
 
         # 默认显示打开首页
         menu_widget.set_current_row(0)
-
-        menu_widget.setFixedWidth(200)
         menu_widget.set_current_row_change(self.page_change)
 
         main_widget = QVBoxLayout()
