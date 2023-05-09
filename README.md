@@ -27,12 +27,12 @@
 
 ## Contribute
 
-first of all, make sure you have installed python >= 3.11 , it's recommended to use venv environment.
+First of all, make sure you have installed python >= 3.11 , it's recommended to use venv environment.
 
-second, run `python setup.py install` to install project dependencies. `pip install -r requirements.txt` is also ok.
+Second, run `python setup.py install` to install project dependencies. `pip install -r requirements.txt` is also ok.
 
-third, when you change one fix or single change, you should do a commit, don't give a big commit.
+Third, when you change one fix or single change, you should do a commit, don't give a big commit.
 
-last, run `python setup.py build` to use pyinstaller to build the app.
+Last, run `python setup.py build` to use pyinstaller to build the app.
 
-welcome contributions from anyone who is interested in joining this project 🎉.
+Welcome contributions from anyone who is interested in joining this project 🎉.
