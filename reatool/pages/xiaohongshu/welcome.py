@@ -1,7 +1,9 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout
 
+from reatool.setting import aria2_html_path
 from reatool.help import get_circle_image_from_url
+from reatool.utils import open_url
 from reatool.widget import Button
 
 
@@ -33,8 +35,8 @@ class WelComeCard(QFrame):
         detail_info_layout.addWidget(self.user_desc_label)
         layout.addLayout(detail_info_layout)
 
-        refresh_button = Button("刷新信息")
-        refresh_button.clicked.connect(self.refresh_clicked)
+        check_download_button = Button("查看下载")
+        check_download_button.clicked.connect(lambda: open_url(f'file:///{aria2_html_path}'))
 
         logout_button = Button("登出")
         logout_button.clicked.connect(self.logout_clicked)
@@ -42,7 +44,7 @@ class WelComeCard(QFrame):
         button_layout = QVBoxLayout()
         button_layout.setSpacing(0)
         button_layout.setContentsMargins(0, 0, 0, 0)
-        button_layout.addWidget(refresh_button)
+        button_layout.addWidget(check_download_button)
         button_layout.addSpacing(4)
         button_layout.addWidget(logout_button)
 
@@ -66,6 +68,3 @@ class WelComeCard(QFrame):
 
     def logout_clicked(self):
         self.logout.emit(True)
-
-    def refresh_clicked(self):
-        self.refresh_user_info.emit(True)

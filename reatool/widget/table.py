@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
-from PySide6.QtGui import QFont, QStandardItemModel
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QFont, QStandardItem
 from PySide6.QtWidgets import QTableView, QAbstractItemView, QHeaderView
 
 
@@ -40,3 +40,16 @@ def init_table(table: QTableView):
                 border-bottom: 1px solid hsla(210,18%,87%,1);
             }
     """)
+
+
+def add_row_to_table(model, props, note):
+    items = []
+    for key in props:
+        item = QStandardItem(str(note.get(key, "")))
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        item.setSizeHint(QSize(0, 35))
+        font = QFont()
+        font.setPixelSize(12)
+        item.setFont(font)
+        items.append(item)
+    model.appendRow(items)

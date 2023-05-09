@@ -1,12 +1,10 @@
 from PySide6.QtCore import Qt, Slot, QByteArray, Signal
 from PySide6.QtGui import QPixmap, QShowEvent
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QMessageBox
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout
+
 from reatool.core import GenerateQrcodeThread, CheckQrcodeThread, GetSelfUserThread, xhs_settings, xhs_client
+from reatool.utils import show_error_message
 from reatool.widget import LineEdit, Button
-
-
-def show_error(msg):
-    QMessageBox.critical(None, '错误', msg, QMessageBox.StandardButton.Close)
 
 
 class LoginPage(QWidget):
@@ -72,12 +70,12 @@ class LoginPage(QWidget):
                 xhs_client.cookie = cookie
                 self.get_self_thread.start()
             except IndexError as e:
-                show_error("请输入有效的 Cookie")
+                show_error_message("请输入有效的 Cookie")
 
     @Slot(dict)
     def validate_user(self, user):
         if not user:
-            xhs_client.cookie = "webId=1"
+            xhs_client.cookie = ""
             self.qrcode_thread.start()
         else:
             xhs_settings.cookie = self.cookie_edit_line.text().strip()

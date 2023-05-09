@@ -1,49 +1,18 @@
-import base64
-import io
 import json
 import logging
 import os
-import re
 import time
 from datetime import datetime
 
-import segno
 from PySide6.QtCore import QThread, Signal
 from xhs import XhsClient, IPBlockError
+from xhs.help import get_valid_path_name, get_imgs_urls_from_note, get_video_urls_from_note
 
 from aria2.client import Aria2Client
-from .setting import xhs_settings
+from .setting import xhs_settings, download_path
+from .utils import generate_qrcode_base64
 
-cookie = xhs_settings.cookie
-xhs_client = XhsClient(cookie)
-root_path = os.path.abspath(".")
-download_path = os.path.join(root_path, "download")
-if not os.path.exists(download_path):
-    os.makedirs(download_path)
-
-
-def get_img_url_by_trace_id(trace_id: str):
-    return f"https://sns-img-bd.xhscdn.com/{trace_id}?imageView2/format/png"
-
-
-def _get_img_urls_from_note(note) -> list:
-    imgs = note["image_list"]
-    if not len(imgs):
-        return []
-    return [get_img_url_by_trace_id(img["trace_id"]) for img in imgs]
-
-
-def _get_video_url_from_note(note) -> str:
-    if not note.get("video"):
-        return ""
-    return f"https://sns-video-bd.xhscdn.com/{note['video']['consumer']['origin_video_key']}"
-
-
-def get_qrcode_base64(text):
-    qrcode = segno.make(text)
-    out = io.BytesIO()
-    qrcode.save(out, kind='png', light=None, scale=3)
-    return base64.b64encode(out.getvalue()).decode("utf-8")
+xhs_client = XhsClient(xhs_settings.cookie)
 
 
 class GenerateQrcodeThread(QThread):
@@ -56,7 +25,7 @@ class GenerateQrcodeThread(QThread):
     def run(self) -> None:
         try:
             qr_dict = xhs_client.get_qrcode()
-            qr_dict.update({"base64": get_qrcode_base64(qr_dict["url"])})
+            qr_dict.update({"base64": generate_qrcode_base64(qr_dict["url"])})
             self.qrcode.emit(qr_dict)
         except Exception as e:
             logging.error(e)
@@ -88,7 +57,8 @@ class CheckQrcodeThread(QThread):
                     break
                 self.check_status.emit(res)
                 time.sleep(1)
-            except:
+            except Exception as e:
+                logging.error(e)
                 self.check_status.emit({"msg": "二维码过期，请刷新"})
                 break
 
@@ -101,7 +71,9 @@ class GetSelfUserThread(QThread):
 
     def run(self) -> None:
         try:
-            self.user.emit(xhs_client.get_self_info())
+            info = xhs_client.get_self_info()
+            logging.info(f"获取个人信息成功：{info}")
+            self.user.emit(info)
         except Exception as e:
             logging.error(e)
             self.user.emit(None)
@@ -117,7 +89,9 @@ class GetUserThread(QThread):
 
     def run(self) -> None:
         try:
-            self.user.emit(xhs_client.get_user_info(self.user_id))
+            info = xhs_client.get_user_info(self.user_id)
+            logging.info(f"获取用户信息成功：{info}")
+            self.user.emit(info)
         except Exception as e:
             logging.error(e)
             self.error.emit(str(e))
@@ -125,7 +99,7 @@ class GetUserThread(QThread):
 
 def get_note_by_id(note_id):
     note = xhs_client.get_note_by_id(note_id)
-    logging.info(note)
+    logging.info(f"获取笔记成功：{note}")
     interact_info = note["interact_info"]
     result = {
         "note_id": note["note_id"],
@@ -135,8 +109,8 @@ def get_note_by_id(note_id):
         "user": note["user"],
         "user_id": note["user"]["user_id"],
         "user_name": note["user"]["nickname"],
-        "img_urls": _get_img_urls_from_note(note),
-        "video_url": _get_video_url_from_note(note),
+        "img_urls": get_imgs_urls_from_note(note),
+        "video_urls": get_video_urls_from_note(note),
         "tag_list": note["tag_list"],
         "at_user_list": note["at_user_list"],
         "collected_count": interact_info["collected_count"],
@@ -198,7 +172,6 @@ class GetUserNoteThread(QThread):
                         if "笔记状态异常" in repr(e):
                             logging.warning(f"【{note_id}】笔记状态异常，已忽略")
                         else:
-                            logging.error(e)
                             raise
                     else:
                         time.sleep(0.5)
@@ -228,12 +201,10 @@ class NoteDownloadThread(QThread):
 
     def run(self) -> None:
         while note := self.note_queue.get():
-            title = note["title"]
             note_id = note["note_id"]
             nickname = note["user"]["nickname"]
             created_time = datetime.fromtimestamp(note["time"] / 1000).strftime("%y%m%d")
-            invalid_chars = '<>:"/\\|?*'
-            title = re.sub('[{}]'.format(re.escape(invalid_chars)), '_', title)
+            title = get_valid_path_name(note["title"])
             title = created_time + "_" + (title + "_" + note_id if title else note_id)
 
             user_save_path = os.path.join(download_path, nickname)
@@ -244,12 +215,13 @@ class NoteDownloadThread(QThread):
 
             img_urls = note["img_urls"]
             if len(img_urls):
-                for index, img_url in enumerate(img_urls):
-                    Aria2Client.add_url([img_url], f"{title}{index}.png", new_dir_path)
-            video_url = note["video_url"]
-            if video_url:
-                Aria2Client.add_url([video_url], f"{title}.mp4", new_dir_path)
-
+                for index, img_urls in enumerate(img_urls):
+                    gids = Aria2Client.add_url(img_urls, f"{title}{index}.png", new_dir_path)
+                    logging.info(f"添加下载成功, gids:{gids}, urls: {img_urls}")
+            video_urls = note["video_urls"]
+            if len(video_urls):
+                gids = Aria2Client.add_url(video_urls, f"{title}.mp4", new_dir_path)
+                logging.info(f"添加下载成功, gids:{gids}, urls: {video_urls}")
             with open(os.path.join(new_dir_path, "data.json"), "w", encoding="utf-8") as f:
                 json.dump(note, f, ensure_ascii=False, indent=4)
             with open(os.path.join(new_dir_path, "文案.txt"), "w", encoding="utf-8") as f:

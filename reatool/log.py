@@ -1,7 +1,7 @@
 import logging
 import os
 
-from reatool.core import root_path
+from reatool.setting import root_path
 
 logger = logging.getLogger()
 log_dir_path = os.path.join(root_path, "log")
