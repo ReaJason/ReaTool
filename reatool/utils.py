@@ -4,14 +4,15 @@ import subprocess
 import webbrowser
 
 import browser_cookie3
+import requests
 import segno
 from PySide6.QtWidgets import QMessageBox
-from xhs import help
 
 
 def get_cookie_from_local(domain_name: str = ""):
     cj = browser_cookie3.load(domain_name=domain_name)
-    return help.cookie_jar_to_cookie_str(cj)
+    cookie_dict = requests.utils.dict_from_cookiejar(cj)
+    return ";".join([f"{key}={value}" for key, value in cookie_dict.items()])
 
 
 def generate_qrcode_base64(text):
