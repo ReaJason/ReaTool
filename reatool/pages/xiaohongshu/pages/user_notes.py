@@ -7,7 +7,7 @@ from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QHBoxLayout, QTableView
 
 from reatool.core import download_path, GetUserNoteThread, GetUserThread, NoteDownloadThread
-from reatool.utils import open_directory, show_error_message
+from reatool.utils import show_error_message
 from reatool.widget import LineEdit, Button, init_table
 from reatool.widget.table import add_row_to_table
 
@@ -34,15 +34,11 @@ class CrawlUserNotes(QFrame):
         self.user_id_edit = LineEdit()
         self.user_id_edit.setPlaceholderText("请输入博主ID")
         self.crawl_button = Button("开始")
-        open_download_path_button = Button("打开下载文件夹")
-        open_download_path_button.clicked.connect(lambda: open_directory(self.user_save_path))
-        open_download_path_button.setFixedWidth(150)
 
         self.crawl_button.clicked.connect(self.get_user_info)
 
         crawl_config_layout.addWidget(self.user_id_edit)
         crawl_config_layout.addWidget(self.crawl_button)
-        crawl_config_layout.addWidget(open_download_path_button)
         layout.addLayout(crawl_config_layout)
 
         self.crawl_display_table = QTableView()
