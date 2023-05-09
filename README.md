@@ -4,7 +4,7 @@
 </p>
 <p align="center">
   <a href="LICENSE" target="_blank">
-    <img alt="MIT License" src="https://img.shields.io/github/license/ReaJason/ReaTool.svg?style=flat-square" />
+    <img alt="MIT License" src="https://img.shields.io/github/license/ReaJason/ReaTool?style=flat-square" />
   </a>
   <img alt="Python3" src="https://img.shields.io/badge/Python3.11+-3670A0.svg?style=flat-square&logo=python&logoColor=ffdd54">
   <img alt="PySide6"  src="https://img.shields.io/badge/PySide6-%23217346.svg?style=flat-square&logo=Qt&logoColor=white" >
