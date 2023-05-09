@@ -1,8 +1,8 @@
-<h1 style="text-align: center">ReaTool</h1>
-<p style="text-align: center">
+<h1 align="center">ReaTool</h1>
+<p align="center">
     <em>build for fun 🎉</em>
 </p>
-<p style="text-align: center">
+<p align="center">
   <a href="LICENSE" target="_blank">
     <img alt="MIT License" src="https://img.shields.io/github/license/ReaJason/ReaTool.svg?style=flat-square" />
   </a>
@@ -10,8 +10,6 @@
   <img alt="PySide6"  src="https://img.shields.io/badge/PySide6-%23217346.svg?style=flat-square&logo=Qt&logoColor=white" >
   <img alt="Windows10" src="https://img.shields.io/badge/-Windows10+-blue.svg?style=flat-square&logo=windows&logoColor=white" />
 </p>
-
-#     
 
 ## Why develop ReaTool
 
