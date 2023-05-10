@@ -14,7 +14,11 @@ class Aria2Server:
 
     @staticmethod
     def start():
-        aria2_exec_path = os.path.join(os.path.abspath("."), "aria2c.exe")
+        is_windows = 'Windows' == platform.system()
+        if is_windows:
+            aria2_exec_path = os.path.join(os.path.abspath("."), "aria2c.exe")
+        else:
+            aria2_exec_path = "aria2c"
         aria2_path = os.path.join(os.path.abspath("."), "aria")
         if not os.path.exists(aria2_path):
             os.makedirs(aria2_path)
@@ -57,7 +61,7 @@ class Aria2Server:
             "--auto-file-renaming=false",
             "-D"
         ]
-        if 'Windows' == platform.system():
+        if is_windows:
             subprocess.Popen(args,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,

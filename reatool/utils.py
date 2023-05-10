@@ -1,5 +1,6 @@
 import base64
 import io
+import platform
 import subprocess
 import webbrowser
 
@@ -7,6 +8,10 @@ import browser_cookie3
 import requests
 import segno
 from PySide6.QtWidgets import QMessageBox
+
+
+def is_windows_platform():
+    return 'Windows' == platform.system()
 
 
 def get_cookie_from_local(domain_name: str = ""):
