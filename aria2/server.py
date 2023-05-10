@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+import platform
 import time
 
 from . import TOKEN, PORT
@@ -56,10 +57,15 @@ class Aria2Server:
             "--auto-file-renaming=false",
             "-D"
         ]
-        process = subprocess.Popen(args,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+        if 'Windows' == platform.system():
+            subprocess.Popen(args,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             creationflags=subprocess.CREATE_NO_WINDOW)
+        else:
+            subprocess.Popen(args,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, )
         time.sleep(1)
 
     @staticmethod
