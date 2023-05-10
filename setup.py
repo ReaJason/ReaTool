@@ -42,7 +42,6 @@ class BuildCommand(build_py):
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         print("[bold]:broom: Clear build, dist folder")
-        shutil.rmtree(dist_path, ignore_errors=True)
         shutil.rmtree(build_path, ignore_errors=True)
         shutil.rmtree(f"{about['__title__']}.egg-info", ignore_errors=True)
         os.remove(f"{about['__title__']}.spec")
