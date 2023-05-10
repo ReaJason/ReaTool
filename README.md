@@ -33,6 +33,6 @@ Second, run `pip install -r requirements.txt` to install project dependencies.
 
 Third, when you change one fix or single change, you should do a commit, don't give a big commit.
 
-Last, run `python setup.py build` to use pyinstaller to build the app.
+Last, run `python setup.py build_py` to use pyinstaller to build the app.
 
 Welcome contributions from anyone who is interested in joining this project 🎉.
