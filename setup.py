@@ -2,9 +2,8 @@ import os
 import subprocess
 import shutil
 from rich import print
-from distutils.command.build import build
-from distutils.command.install import install
-from distutils.core import setup
+from setuptools.command.build_py import build_py
+from setuptools import setup
 
 about = {}
 root_path = os.path.abspath(os.path.dirname(__file__))
@@ -16,7 +15,7 @@ with open("README.md", "r", encoding="utf-8") as f:
     readme = f.read()
 
 
-class BuildCommand(build):
+class BuildCommand(build_py):
     def run(self):
         dist_path = os.path.join(root_path, "dist")
         assert_path = os.path.join(root_path, "asserts")
@@ -80,6 +79,6 @@ setup(
         'rich',
     ],
     cmdclass={
-        'build': BuildCommand,
+        'build_py': BuildCommand,
     }
 )
