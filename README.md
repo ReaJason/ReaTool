@@ -29,7 +29,7 @@
 
 First of all, make sure you have installed python >= 3.11 , it's recommended to use venv environment.
 
-Second, run `python setup.py install` to install project dependencies. `pip install -r requirements.txt` is also ok.
+Second, run `pip install -r requirements.txt` to install project dependencies.
 
 Third, when you change one fix or single change, you should do a commit, don't give a big commit.
 

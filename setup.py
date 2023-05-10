@@ -16,11 +16,6 @@ with open("README.md", "r", encoding="utf-8") as f:
     readme = f.read()
 
 
-class InstallCommand(install):
-    def run(self):
-        subprocess.run("pip install -r requirements.txt")
-
-
 class BuildCommand(build):
     def run(self):
         dist_path = os.path.join(root_path, "dist")
@@ -86,6 +81,5 @@ setup(
     ],
     cmdclass={
         'build': BuildCommand,
-        "install": InstallCommand,
     }
 )
