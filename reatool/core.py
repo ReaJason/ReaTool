@@ -98,7 +98,7 @@ class GetUserThread(QThread):
 
 
 def get_note_by_id(note_id):
-    note = xhs_client.get_note_by_id(note_id)
+    note = xhs_client.get_note_by_id_from_html(note_id)
     logging.info(f"获取笔记成功：{note}")
     interact_info = note["interact_info"]
     result = {
