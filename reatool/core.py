@@ -6,7 +6,7 @@ from datetime import datetime
 
 from PySide6.QtCore import QThread, Signal
 from xhs import XhsClient, IPBlockError
-from xhs.help import get_valid_path_name, get_imgs_urls_from_note, get_video_urls_from_note
+from xhs.help import get_valid_path_name, get_imgs_urls_from_note, video_cdns
 
 from aria2.client import Aria2Client
 from .setting import xhs_settings, download_path
@@ -95,6 +95,13 @@ class GetUserThread(QThread):
         except Exception as e:
             logging.error(e)
             self.error.emit(str(e))
+
+
+def get_video_urls_from_note(note) -> list:
+    if not note.get("video"):
+        return []
+    origin_video_key = note['video']['consumer']['origin_video_key']
+    return [f"{cdn}/{origin_video_key}" for cdn in video_cdns]
 
 
 def get_note_by_id(note_id):
