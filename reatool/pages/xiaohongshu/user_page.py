@@ -30,7 +30,7 @@ class UserPage(QWidget):
 
         tab_bar = QTabWidget()
         tab_bar.addTab(CrawlNotes(), "笔记详情")
-        tab_bar.addTab(CrawlUserNotes(), "用户笔记")
+        # tab_bar.addTab(CrawlUserNotes(), "用户笔记")
         # tab_bar.addTab(CrawlComments(), "笔记评论")
         tab_bar.addTab(CrawlAbout(), "关于")
         self.layout.addWidget(tab_bar)
