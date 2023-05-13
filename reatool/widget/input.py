@@ -16,15 +16,10 @@ class LineEdit(QLineEdit):
             background-position: right 8px center;
             border: 1px solid #d0d7de;
             border-radius: 6px;
-            box-shadow: inset 0 1px 0 rgba(208,215,222,0.2);
-            transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
-            transition-property: color,background-color,box-shadow,border-color;
         }
-        
         QLineEdit::focus {
             border-color: #0969da;
             outline: none;
-            box-shadow: inset 0 0 0 1px transparent;
             background-color: #ffffff;
         }
         """)
